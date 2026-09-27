@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.next/
+coverage/
+out/
+
+backend/node_modules/
+backend/dist/
+backend/coverage/
+
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/coverage/
