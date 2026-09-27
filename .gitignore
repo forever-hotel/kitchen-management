@@ -7,7 +7,13 @@ dist/
 out/
 
 # Environment files
+# Environment files may contain secrets or machine-specific configuration.
 .env
+.env.*
+
+# Example environment files are intentionally committed.
+!.env.example
+
 .env.local
 .env.development.local
 .env.test.local

@@ -1,7 +1,7 @@
 ---
 name: KMS Development Issue
 about: Standard development issue for the Kitchen Management System
-title: "[KMS-#] "
+title: "[DDP-#] "
 labels: ""
 assignees: ""
 ---
