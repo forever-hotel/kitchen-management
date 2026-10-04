@@ -1,20 +1,50 @@
 # Forever Hotel Kitchen Management System
 
-Kitchen Management System (KMS) for the Forever Hotel Management System.
+A full-stack kitchen management application for the Forever Hotel operations stack. The project combines a NestJS API, a Next.js frontend, and supporting infrastructure for local development with PostgreSQL and RabbitMQ.
 
-## Applications
+## Stack
 
-- `backend/`: NestJS 12 API written in TypeScript
-- `frontend/`: Next.js 16 application using React 19 and TypeScript
+- Backend: NestJS 12 + TypeScript
+- Frontend: Next.js 16 + React 19 + TypeScript
+- Database: PostgreSQL 15
+- Messaging: RabbitMQ 4
+- Local orchestration: Docker Compose
+
+## Project structure
+
+```text
+backend/           NestJS API and configuration
+frontend/          Next.js frontend application
+contracts/         Shared contract/workspace files
+compose.yaml       Docker Compose for local infrastructure
+README.md          Project overview and local setup
+```
 
 ## Prerequisites
 
-- Node.js 20.9 or later
+- Node.js 20+
 - npm
+- Docker Desktop or Docker Engine
 
-## Setup
+## Quick start with Docker Compose
 
-Install dependencies for both applications:
+This is the recommended way to run the full stack locally:
+
+```bash
+docker compose up --build
+```
+
+This starts the following services:
+
+- Frontend: http://localhost:3000
+- Backend: http://localhost:3001
+- PostgreSQL: localhost:5432
+- RabbitMQ: localhost:5672
+- RabbitMQ management UI: http://localhost:15672
+
+## Local development without Docker
+
+### 1) Install dependencies
 
 ```bash
 cd backend
@@ -24,46 +54,52 @@ cd ../frontend
 npm install
 ```
 
-Create the backend environment file from the committed example:
+### 2) Configure the backend environment
+
+Create the backend environment file from the example:
 
 ```bash
 cd backend
 copy .env.example .env
 ```
 
-On macOS or Linux, use `cp .env.example .env` instead.
+On macOS or Linux, use:
 
-The backend environment currently supports:
+```bash
+cp .env.example .env
+```
 
-| Variable   | Default       | Description                                                            |
-| ---------- | ------------- | ---------------------------------------------------------------------- |
-| `NODE_ENV` | `development` | Runtime environment: `development`, `test`, `staging`, or `production` |
-| `PORT`     | `3001`        | Backend HTTP port                                                      |
+The backend environment currently includes:
 
-## Run Locally
+| Variable | Default | Description |
+| --- | --- | --- |
+| `NODE_ENV` | `development` | Runtime environment |
+| `PORT` | `3001` | Backend HTTP port |
 
-Start the backend in watch mode from one terminal:
+### 3) Start both apps
+
+Start the backend in one terminal:
 
 ```bash
 cd backend
 npm run start:dev
 ```
 
-Start the frontend from a second terminal:
+Start the frontend in another terminal:
 
 ```bash
 cd frontend
 npm run dev
 ```
 
-Open the applications at:
+Open:
 
 - Frontend: http://localhost:3000
 - Backend: http://localhost:3001
 
-## Validation
+## Useful commands
 
-Backend commands:
+### Backend
 
 ```bash
 cd backend
@@ -71,32 +107,50 @@ npm run build
 npm run lint
 npm run test
 npm run test:e2e
+npm run format
+npm run format:check
 ```
 
-Frontend commands:
+### Frontend
 
 ```bash
 cd frontend
 npm run build
 npm run lint
+npm run format
+npm run format:check
 ```
 
-Formatting checks are available in both applications with `npm run format:check`.
-Use `npm run format` to apply formatting.
+## Docker services details
 
-## Project Structure
+The Compose file defines:
 
-```text
-backend/
-  src/                 NestJS application source and configuration
-  test/                End-to-end tests
-frontend/
-  app/                 Next.js App Router pages and global styles
-  public/              Static frontend assets
-contracts/             Shared API contract workspace
-```
+- `backend`: NestJS app, exposed on port 3001
+- `frontend`: Next.js app, exposed on port 3000
+- `postgres`: PostgreSQL database, exposed on port 5432
+- `rabbitmq`: RabbitMQ broker, exposed on ports 5672 and 15672
 
-## More Information
+The frontend container injects `NEXT_PUBLIC_API_BASE_URL=http://localhost:3001` so the app can call the backend from the browser.
 
-See [backend/README.md](backend/README.md) and [frontend/README.md](frontend/README.md)
-for framework-specific documentation.
+## Additional documentation
+
+See the framework-specific READMEs for more details:
+
+- [backend/README.md](backend/README.md)
+- [frontend/README.md](frontend/README.md)
+
+### Development database persistence
+
+The PostgreSQL container in the local Docker development environment is
+intentionally ephemeral, following the Forever Hotel SDS development
+environment specification.
+
+PostgreSQL data is stored using Docker `tmpfs`.
+
+As a result, database contents are lost when the PostgreSQL container is
+restarted or recreated.
+
+Do not store important development data in this database.
+
+This environment is intended for local development and repeatable test data.
+Persistent PostgreSQL storage is used for staging and production environments.
