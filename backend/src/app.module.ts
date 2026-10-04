@@ -4,12 +4,12 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { environmentValidationSchema } from './config/environment.validation.js';
+import { HealthModule } from './health/health.module.js';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      cache: true,
       validationSchema: environmentValidationSchema,
       validationOptions: {
         libraryOptions: {
@@ -18,6 +18,7 @@ import { environmentValidationSchema } from './config/environment.validation.js'
         },
       },
     }),
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
