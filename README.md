@@ -132,6 +132,16 @@ The Compose file defines:
 
 The frontend container injects `NEXT_PUBLIC_API_BASE_URL=http://localhost:3001` so the app can call the backend from the browser.
 
+## Backend Health and API Documentation
+
+When the KMS backend is running:
+
+### Liveness
+
+```text
+GET http://localhost:3001/health/live
+```
+
 ## Additional documentation
 
 See the framework-specific READMEs for more details:
@@ -154,3 +164,4 @@ Do not store important development data in this database.
 
 This environment is intended for local development and repeatable test data.
 Persistent PostgreSQL storage is used for staging and production environments.
+
