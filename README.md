@@ -138,3 +138,19 @@ See the framework-specific READMEs for more details:
 
 - [backend/README.md](backend/README.md)
 - [frontend/README.md](frontend/README.md)
+
+### Development database persistence
+
+The PostgreSQL container in the local Docker development environment is
+intentionally ephemeral, following the Forever Hotel SDS development
+environment specification.
+
+PostgreSQL data is stored using Docker `tmpfs`.
+
+As a result, database contents are lost when the PostgreSQL container is
+restarted or recreated.
+
+Do not store important development data in this database.
+
+This environment is intended for local development and repeatable test data.
+Persistent PostgreSQL storage is used for staging and production environments.

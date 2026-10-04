@@ -53,8 +53,14 @@ services:
       POSTGRES_PASSWORD: forever_dev
     ports:
       - '5432:5432'
+
+    # Development database is intentionally ephemeral.
+    # SDS §7.4 specifies an ephemeral PostgreSQL container for local development.
+    # All database contents are lost when the PostgreSQL container is restarted
+    # or recreated.
     tmpfs:
       - /var/lib/postgresql/data
+    
     healthcheck:
       test:
         [
