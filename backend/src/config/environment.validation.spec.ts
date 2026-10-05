@@ -1,5 +1,3 @@
-import { describe, expect, it } from 'vitest';
-
 import { environmentValidationSchema } from './environment.validation.js';
 
 describe('environmentValidationSchema', () => {
