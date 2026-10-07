@@ -15,7 +15,9 @@ describe('MealCategoryRepository', () => {
     ] as MealCategory[];
 
     const typeOrmRepository = {
-      find: jest.fn<() => Promise<MealCategory[]>>().mockResolvedValue(categories),
+      find: jest
+        .fn<() => Promise<MealCategory[]>>()
+        .mockResolvedValue(categories),
     } as unknown as Repository<MealCategory>;
 
     const repository = new MealCategoryRepository(typeOrmRepository);
@@ -40,7 +42,9 @@ describe('MealCategoryRepository', () => {
     } as MealCategory;
 
     const typeOrmRepository = {
-      findOne: jest.fn<() => Promise<MealCategory | null>>().mockResolvedValue(category),
+      findOne: jest
+        .fn<() => Promise<MealCategory | null>>()
+        .mockResolvedValue(category),
     } as unknown as Repository<MealCategory>;
 
     const repository = new MealCategoryRepository(typeOrmRepository);

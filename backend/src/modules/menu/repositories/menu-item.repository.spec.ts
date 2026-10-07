@@ -40,7 +40,9 @@ describe('MenuItemRepository', () => {
     } as MenuItem;
 
     const typeOrmRepository = {
-      findOne: jest.fn<() => Promise<MenuItem | null>>().mockResolvedValue(menuItem),
+      findOne: jest
+        .fn<() => Promise<MenuItem | null>>()
+        .mockResolvedValue(menuItem),
     } as unknown as Repository<MenuItem>;
 
     const repository = new MenuItemRepository(typeOrmRepository);
