@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { environmentValidationSchema } from './config/index.js';
+import { DatabaseModule } from './database/database.module.js';
 import { HealthModule } from './health/health.module.js';
 
 @Module({
@@ -18,6 +19,7 @@ import { HealthModule } from './health/health.module.js';
         },
       },
     }),
+    DatabaseModule,
     HealthModule,
   ],
   controllers: [AppController],

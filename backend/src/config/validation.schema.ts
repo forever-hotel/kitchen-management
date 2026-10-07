@@ -10,4 +10,12 @@ export const environmentValidationSchema = Joi.object({
     .default('development'),
 
   PORT: Joi.number().port().default(3001),
+
+  DATABASE_URL: Joi.string()
+    .uri({
+      scheme: ['postgres', 'postgresql'],
+    })
+    .required(),
+
+  DATABASE_SSL: Joi.boolean().truthy('true').falsy('false').default(false),
 });

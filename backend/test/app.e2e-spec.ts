@@ -21,4 +21,22 @@ describe('AppController (e2e)', () => {
   afterEach(async () => {
     await app.close();
   });
+
+  it('/health/live (GET)', () =>
+    request(app.getHttpServer()).get('/health/live').expect(200).expect({
+      status: 'ok',
+      service: 'kms-backend',
+    }));
+
+  it('/health/ready (GET)', () =>
+    request(app.getHttpServer())
+      .get('/health/ready')
+      .expect(200)
+      .expect({
+        status: 'ok',
+        service: 'kms-backend',
+        dependencies: {
+          database: 'up',
+        },
+      }));
 });
