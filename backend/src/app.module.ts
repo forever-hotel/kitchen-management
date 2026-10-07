@@ -6,6 +6,8 @@ import { AppService } from './app.service.js';
 import { environmentValidationSchema } from './config/index.js';
 import { DatabaseModule } from './database/database.module.js';
 import { HealthModule } from './health/health.module.js';
+import { MenuCategoriesModule } from './modules/menu-categories/menu-categories.module.js';
+import { MenuModule } from './modules/menu/menu.module.js';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { HealthModule } from './health/health.module.js';
       },
     }),
     DatabaseModule,
+    MenuCategoriesModule,
+    MenuModule,
     HealthModule,
   ],
   controllers: [AppController],
