@@ -1,14 +1,29 @@
-import { Controller, Get } from '@nestjs/common';
-import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
+import {
+  ApiOkResponse,
+  ApiOperation,
+  ApiServiceUnavailableResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+
+import { DatabaseHealthService } from '../database/database-health.service.js';
 
 interface HealthResponse {
   status: 'ok';
   service: string;
 }
 
+interface ReadinessResponse extends HealthResponse {
+  dependencies: {
+    database: 'up';
+  };
+}
+
 @ApiTags('Health')
 @Controller('health')
 export class HealthController {
+  constructor(private readonly databaseHealthService: DatabaseHealthService) {}
+
   @Get('live')
   @ApiOperation({
     summary: 'Check whether the KMS backend process is alive',
@@ -31,21 +46,52 @@ export class HealthController {
 
   @Get('ready')
   @ApiOperation({
-    summary: 'Check whether the KMS backend is ready to receive requests',
+    summary:
+      'Check whether the KMS backend and required dependencies are ready',
   })
   @ApiOkResponse({
-    description: 'The KMS backend has completed application startup.',
+    description: 'The KMS backend and PostgreSQL dependency are ready.',
     schema: {
       example: {
         status: 'ok',
         service: 'kms-backend',
+        dependencies: {
+          database: 'up',
+        },
       },
     },
   })
-  getReadiness(): HealthResponse {
+  @ApiServiceUnavailableResponse({
+    description: 'A required KMS dependency is unavailable.',
+    schema: {
+      example: {
+        status: 'error',
+        service: 'kms-backend',
+        dependencies: {
+          database: 'down',
+        },
+      },
+    },
+  })
+  async getReadiness(): Promise<ReadinessResponse> {
+    const databaseReady = await this.databaseHealthService.isReady();
+
+    if (!databaseReady) {
+      throw new ServiceUnavailableException({
+        status: 'error',
+        service: 'kms-backend',
+        dependencies: {
+          database: 'down',
+        },
+      });
+    }
+
     return {
       status: 'ok',
       service: 'kms-backend',
+      dependencies: {
+        database: 'up',
+      },
     };
   }
 }

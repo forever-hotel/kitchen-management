@@ -15,6 +15,27 @@ jobs:
     name: Backend Quality
     runs-on: ubuntu-22.04
 
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: forever_hotel_test
+          POSTGRES_USER: forever_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U forever_test -d forever_hotel_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      NODE_ENV: test
+      PORT: 3001
+      DATABASE_URL: postgresql://forever_test@localhost:5432/forever_hotel_test
+      DATABASE_SSL: 'false'
+
     defaults:
       run:
         working-directory: backend

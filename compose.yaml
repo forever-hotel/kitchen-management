@@ -9,6 +9,8 @@ services:
     environment:
       NODE_ENV: development
       PORT: 3001
+      DATABASE_URL: 'postgresql://forever:${POSTGRES_PASSWORD}@postgres:5432/forever_hotel'
+      DATABASE_SSL: 'false'
 
       # Required for reliable file watching with Docker Desktop bind mounts.
       CHOKIDAR_USEPOLLING: 'true'
@@ -16,6 +18,10 @@ services:
       TSC_WATCHFILE: DynamicPriorityPolling
       TSC_WATCHDIRECTORY: DynamicPriorityPolling
 
+    depends_on:
+      postgres:
+        condition: service_healthy
+        
     ports:
       - '3001:3001'
     volumes:
@@ -50,7 +56,7 @@ services:
     environment:
       POSTGRES_DB: forever_hotel
       POSTGRES_USER: forever
-      POSTGRES_PASSWORD: forever_dev
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - '5432:5432'
 
