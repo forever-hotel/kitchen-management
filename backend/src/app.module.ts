@@ -3,7 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
-import { environmentValidationSchema } from './config/environment.validation.js';
+import { environmentValidationSchema } from './config/index.js';
 import { HealthModule } from './health/health.module.js';
 
 @Module({

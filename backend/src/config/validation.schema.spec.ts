@@ -1,4 +1,4 @@
-import { environmentValidationSchema } from './environment.validation.js';
+import { environmentValidationSchema } from './validation.schema.js';
 
 describe('environmentValidationSchema', () => {
   it('TC-ENV-001 Given no overrides when validated then development defaults are used', () => {
