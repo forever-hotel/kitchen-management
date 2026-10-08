@@ -3,6 +3,8 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
   type Relation,
@@ -11,6 +13,8 @@ import {
 
 import { MealCategory } from '../../menu-categories/entities/meal-category.entity.js';
 import { MenuItemStockStatus } from '../enums/menu-item-stock-status.enum.js';
+import { Allergen } from './allergen.entity.js';
+import { DietaryLabel } from './dietary-label.entity.js';
 
 @Entity({ name: 'kms_menu_items' })
 export class MenuItem {
@@ -97,4 +101,32 @@ export class MenuItem {
     referencedColumnName: 'categoryId',
   })
   category!: Relation<MealCategory>;
+
+  @ManyToMany(() => Allergen, (allergen) => allergen.menuItems)
+  @JoinTable({
+    name: 'kms_menu_item_allergens',
+    joinColumn: {
+      name: 'menu_item_id',
+      referencedColumnName: 'menuItemId',
+    },
+    inverseJoinColumn: {
+      name: 'allergen_id',
+      referencedColumnName: 'allergenId',
+    },
+  })
+  allergens!: Relation<Allergen[]>;
+
+  @ManyToMany(() => DietaryLabel, (dietaryLabel) => dietaryLabel.menuItems)
+  @JoinTable({
+    name: 'kms_menu_item_dietary_labels',
+    joinColumn: {
+      name: 'menu_item_id',
+      referencedColumnName: 'menuItemId',
+    },
+    inverseJoinColumn: {
+      name: 'dietary_label_id',
+      referencedColumnName: 'dietaryLabelId',
+    },
+  })
+  dietaryLabels!: Relation<DietaryLabel[]>;
 }

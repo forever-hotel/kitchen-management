@@ -115,4 +115,68 @@ describe('MenuItem entity', () => {
     expect(columnNames).not.toContain('dietary_labels');
     expect(columnNames).not.toContain('calorie_count');
   });
+
+  it('TC-KMS-MENU-024: Given normalized allergen persistence, when MenuItem relation metadata is inspected, then the approved allergen junction table is used', () => {
+    // Arrange / Act
+    const relation = storage.relations.find(
+      (metadata) =>
+        metadata.target === MenuItem && metadata.propertyName === 'allergens',
+    );
+
+    const joinTable = storage.joinTables.find(
+      (metadata) =>
+        metadata.target === MenuItem && metadata.propertyName === 'allergens',
+    );
+
+    // Assert
+    expect(relation?.relationType).toBe('many-to-many');
+    expect(joinTable?.name).toBe('kms_menu_item_allergens');
+
+    expect(joinTable?.joinColumns).toEqual([
+      {
+        name: 'menu_item_id',
+        referencedColumnName: 'menuItemId',
+      },
+    ]);
+
+    expect(joinTable?.inverseJoinColumns).toEqual([
+      {
+        name: 'allergen_id',
+        referencedColumnName: 'allergenId',
+      },
+    ]);
+  });
+
+  it('TC-KMS-MENU-025: Given normalized dietary-label persistence, when MenuItem relation metadata is inspected, then the approved dietary-label junction table is used', () => {
+    // Arrange / Act
+    const relation = storage.relations.find(
+      (metadata) =>
+        metadata.target === MenuItem &&
+        metadata.propertyName === 'dietaryLabels',
+    );
+
+    const joinTable = storage.joinTables.find(
+      (metadata) =>
+        metadata.target === MenuItem &&
+        metadata.propertyName === 'dietaryLabels',
+    );
+
+    // Assert
+    expect(relation?.relationType).toBe('many-to-many');
+    expect(joinTable?.name).toBe('kms_menu_item_dietary_labels');
+
+    expect(joinTable?.joinColumns).toEqual([
+      {
+        name: 'menu_item_id',
+        referencedColumnName: 'menuItemId',
+      },
+    ]);
+
+    expect(joinTable?.inverseJoinColumns).toEqual([
+      {
+        name: 'dietary_label_id',
+        referencedColumnName: 'dietaryLabelId',
+      },
+    ]);
+  });
 });
