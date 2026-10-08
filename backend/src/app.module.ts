@@ -8,6 +8,7 @@ import { DatabaseModule } from './database/database.module.js';
 import { HealthModule } from './health/health.module.js';
 import { MenuCategoriesModule } from './modules/menu-categories/menu-categories.module.js';
 import { MenuModule } from './modules/menu/menu.module.js';
+import { OrdersModule } from './modules/orders/orders.module.js';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { MenuModule } from './modules/menu/menu.module.js';
     DatabaseModule,
     MenuCategoriesModule,
     MenuModule,
+    OrdersModule,
     HealthModule,
   ],
   controllers: [AppController],
