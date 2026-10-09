@@ -1,8 +1,9 @@
 export default function Home() {
   return (
-    <main>
-      <h1>Forever Hotel Kitchen Management System</h1>
-      <p>KMS development environment is running.</p>
-    </main>
+    <section aria-labelledby="kms-foundation-heading">
+      <h2 id="kms-foundation-heading">KMS frontend foundation</h2>
+
+      <p>The Kitchen Management System frontend is ready for feature development.</p>
+    </section>
   );
 }
