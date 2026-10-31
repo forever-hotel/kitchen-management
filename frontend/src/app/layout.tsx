@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from 'next/font/google';
 
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 
-import { KmsShell } from '@/components/layout/kms-shell';
 import { AppProviders } from '@/providers/app-providers';
 
 import './globals.css';
@@ -23,14 +22,18 @@ export const metadata: Metadata = {
   description: 'Forever Hotel kitchen operations and order management',
 };
 
+/**
+ * Global application layout.
+ *
+ * Public and protected workspace pages share the theme
+ * and providers, but use different application shells.
+ */
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <AntdRegistry>
-          <AppProviders>
-            <KmsShell>{children}</KmsShell>
-          </AppProviders>
+          <AppProviders>{children}</AppProviders>
         </AntdRegistry>
       </body>
     </html>

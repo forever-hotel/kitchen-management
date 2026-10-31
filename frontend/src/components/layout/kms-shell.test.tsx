@@ -63,4 +63,67 @@ describe('KmsShell', () => {
     // Assert
     expect(screen.getByText('Forever Hotel Kitchen Operations')).toBeInTheDocument();
   });
+
+  it('TC-KMS-SF-002: kitchen manager can access all navigation links', () => {
+    render(
+      <AppProviders>
+        <KmsShell role="KITCHEN_MANAGER">
+          <p>Manager dashboard</p>
+        </KmsShell>
+      </AppProviders>,
+    );
+
+    expect(
+      screen.getByRole('navigation', {
+        name: 'Kitchen navigation',
+      }),
+    ).toBeInTheDocument();
+
+    expect(screen.getByRole('link', { name: 'Order Queue' })).toHaveAttribute(
+      'href',
+      '/order-queue',
+    );
+
+    expect(screen.getByRole('link', { name: 'Menu Management' })).toHaveAttribute(
+      'href',
+      '/menu-management',
+    );
+
+    expect(screen.getByRole('link', { name: 'Time Windows' })).toHaveAttribute(
+      'href',
+      '/time-windows',
+    );
+  });
+
+  it('TC-KMS-SF-003: kitchen staff can only see Order Queue', () => {
+    render(
+      <AppProviders>
+        <KmsShell role="KITCHEN_STAFF">
+          <p>Kitchen staff workspace</p>
+        </KmsShell>
+      </AppProviders>,
+    );
+
+    expect(screen.getByRole('link', { name: 'Order Queue' })).toBeInTheDocument();
+
+    expect(screen.queryByRole('link', { name: 'Menu Management' })).not.toBeInTheDocument();
+
+    expect(screen.queryByRole('link', { name: 'Time Windows' })).not.toBeInTheDocument();
+  });
+
+  it('unauthenticated users do not see operational navigation', () => {
+    render(
+      <AppProviders>
+        <KmsShell>
+          <p>Public content</p>
+        </KmsShell>
+      </AppProviders>,
+    );
+
+    expect(
+      screen.queryByRole('navigation', {
+        name: 'Kitchen navigation',
+      }),
+    ).not.toBeInTheDocument();
+  });
 });
