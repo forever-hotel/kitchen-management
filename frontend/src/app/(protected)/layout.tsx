@@ -1,13 +1,19 @@
 import type { PropsWithChildren } from 'react';
 
-import { KmsShell } from '@/components/layout/kms-shell';
+import { KmsShell } from '../../components/layout/kms-shell';
+import { requireKmsWorkspaceSession } from '../../lib/auth/kms-workspace-access';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 /**
- * Shared layout for kitchen operational pages.
+ * Shared authenticated KMS workspace shell.
  *
- * Authentication and server-side route protection
- * will be connected under DDP-235.
+ * The live Gateway role controls navigation visibility.
+ * Individual pages independently verify authorization.
  */
-export default function WorkspaceLayout({ children }: PropsWithChildren) {
-  return <KmsShell>{children}</KmsShell>;
+export default async function WorkspaceLayout({ children }: PropsWithChildren) {
+  const session = await requireKmsWorkspaceSession();
+
+  return <KmsShell role={session.role}>{children}</KmsShell>;
 }
