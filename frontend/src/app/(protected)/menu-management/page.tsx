@@ -1,4 +1,11 @@
-export default function MenuManagementPage() {
+import { requireKmsManagerSession } from '../../../lib/auth/kms-workspace-access';
+
+export const dynamic = 'force-dynamic';
+
+export default async function MenuManagementPage() {
+  // Only KITCHEN_MANAGER may access this page.
+  await requireKmsManagerSession();
+
   return (
     <section aria-labelledby="menu-management-heading">
       <h2 id="menu-management-heading">Menu Management</h2>

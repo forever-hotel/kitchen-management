@@ -1,7 +1,13 @@
+const mockReplace = jest.fn();
+
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    replace: mockReplace,
+  }),
+}));
+
 import { render, screen } from '@testing-library/react';
-
 import { AppProviders } from '@/providers/app-providers';
-
 import { KmsShell } from './kms-shell';
 
 describe('KmsShell', () => {
