@@ -123,3 +123,53 @@ textarea:focus-visible {
     font-size: 20px;
   }
 }
+
+/*
+ * KMS shared navigation.
+ * Uses the approved Forever Hotel theme colours.
+ */
+
+.kms-shell__nav {
+  margin-left: auto;
+}
+
+.kms-shell__nav-link {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  border-radius: 8px;
+  color: var(--kms-header-foreground);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.kms-shell__nav-link:hover {
+  background: rgb(255 255 255 / 12%);
+  color: var(--kms-header-foreground);
+}
+
+.kms-shell__nav-link:focus-visible {
+  background: rgb(255 255 255 / 12%);
+  color: var(--kms-header-foreground);
+  outline: 2px solid currentcolor;
+  outline-offset: 2px;
+}
+
+/*
+ * Responsive navigation for tablets and phones.
+ */
+@media (max-width: 900px) {
+  .kms-shell__header {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .kms-shell__nav {
+    width: 100%;
+    margin-left: 0;
+  }
+}
