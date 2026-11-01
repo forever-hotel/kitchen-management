@@ -1,4 +1,6 @@
-export type KmsRole = 'KITCHEN_MANAGER' | 'KITCHEN_STAFF';
+import type { KmsRole } from '@/types/gateway-auth';
+
+export type { KmsRole } from '@/types/gateway-auth';
 
 export interface KmsNavigationItem {
   key: string;
