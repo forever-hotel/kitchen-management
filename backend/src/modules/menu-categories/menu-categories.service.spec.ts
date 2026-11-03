@@ -9,7 +9,9 @@ describe('MenuCategoriesService (R-02)', () => {
       findAll: jest.fn<() => Promise<MealCategory[]>>().mockResolvedValue([]),
     } as unknown as MealCategoryRepository;
 
-    await expect(new MenuCategoriesService(repo).listCategories()).resolves.toEqual([]);
+    await expect(
+      new MenuCategoriesService(repo).listCategories(),
+    ).resolves.toEqual([]);
   });
 
   it('TC-KMS-R02-007: Given a category, when read, then its saved start and cutoff times are returned', async () => {
@@ -24,7 +26,9 @@ describe('MenuCategoriesService (R-02)', () => {
       ]),
     } as unknown as MealCategoryRepository;
 
-    await expect(new MenuCategoriesService(repo).listCategories()).resolves.toEqual([
+    await expect(
+      new MenuCategoriesService(repo).listCategories(),
+    ).resolves.toEqual([
       {
         categoryId: '22222222-2222-4222-8222-222222222222',
         name: 'Lunch',

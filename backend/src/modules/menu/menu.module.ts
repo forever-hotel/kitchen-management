@@ -14,7 +14,13 @@ import { MenuItemRepository } from './repositories/menu-item.repository.js';
 @Module({
   imports: [TypeOrmModule.forFeature([MenuItem, Allergen, DietaryLabel])],
   controllers: [MenuController],
-  providers: [MenuService, MenuItemRepository, AllergenRepository, DietaryLabelRepository, KmsManagerReadGuard],
+  providers: [
+    MenuService,
+    MenuItemRepository,
+    AllergenRepository,
+    DietaryLabelRepository,
+    KmsManagerReadGuard,
+  ],
   exports: [MenuItemRepository, AllergenRepository, DietaryLabelRepository],
 })
 export class MenuModule {}

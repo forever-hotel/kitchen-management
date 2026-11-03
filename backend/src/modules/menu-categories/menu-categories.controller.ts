@@ -13,8 +13,12 @@ import { MenuCategoriesService } from './menu-categories.service.js';
 
 @ApiTags('KMS Manager - Meal Categories')
 @ApiBearerAuth()
-@ApiUnauthorizedResponse({ description: 'Missing or invalid Gateway staff session.' })
-@ApiForbiddenResponse({ description: 'Only KITCHEN_MANAGER can view meal categories.' })
+@ApiUnauthorizedResponse({
+  description: 'Missing or invalid Gateway staff session.',
+})
+@ApiForbiddenResponse({
+  description: 'Only KITCHEN_MANAGER can view meal categories.',
+})
 @UseGuards(KmsManagerReadGuard)
 @Controller('api/v1/menu/categories')
 export class MenuCategoriesController {

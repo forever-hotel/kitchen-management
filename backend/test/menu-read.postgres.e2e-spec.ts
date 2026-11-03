@@ -39,7 +39,9 @@ postgresSuite('KMS read APIs with isolated PostgreSQL (R-02)', () => {
       !['localhost', '127.0.0.1', 'postgres', 'db'].includes(hostname) ||
       !/(test|ci)/.test(dbName)
     ) {
-      throw new Error('KMS_R02_TEST_DATABASE_URL must target a dedicated LOCAL test database');
+      throw new Error(
+        'KMS_R02_TEST_DATABASE_URL must target a dedicated LOCAL test database',
+      );
     }
 
     const moduleRef = await Test.createTestingModule({
@@ -74,16 +76,24 @@ postgresSuite('KMS read APIs with isolated PostgreSQL (R-02)', () => {
       `INSERT INTO public.kms_menu_items
        (menu_item_id,category_id,name,price,preparation_time,portion_limit,stock_status)
        VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-      [menuItemId, categoryId, `R02 Test Rice ${uniqueSuffix}`, 850, 20, 5, 'LOW_STOCK'],
+      [
+        menuItemId,
+        categoryId,
+        `R02 Test Rice ${uniqueSuffix}`,
+        850,
+        20,
+        5,
+        'LOW_STOCK',
+      ],
     );
-    await dataSource.query('INSERT INTO public.kms_allergens (allergen_id,name) VALUES ($1,$2)', [
-      allergenId,
-      `R02 Test Soy ${uniqueSuffix}`,
-    ]);
-    await dataSource.query('INSERT INTO public.kms_dietary_labels (dietary_label_id,name) VALUES ($1,$2)', [
-      labelId,
-      `R02 Test Dietary ${uniqueSuffix}`,
-    ]);
+    await dataSource.query(
+      'INSERT INTO public.kms_allergens (allergen_id,name) VALUES ($1,$2)',
+      [allergenId, `R02 Test Soy ${uniqueSuffix}`],
+    );
+    await dataSource.query(
+      'INSERT INTO public.kms_dietary_labels (dietary_label_id,name) VALUES ($1,$2)',
+      [labelId, `R02 Test Dietary ${uniqueSuffix}`],
+    );
     await dataSource.query(
       'INSERT INTO public.kms_menu_item_allergens (menu_item_id,allergen_id) VALUES ($1,$2)',
       [menuItemId, allergenId],
@@ -97,12 +107,30 @@ postgresSuite('KMS read APIs with isolated PostgreSQL (R-02)', () => {
   afterAll(async () => {
     if (dataSource?.isInitialized) {
       // Only IDs created by this suite are removed.
-      await dataSource.query('DELETE FROM public.kms_menu_item_allergens WHERE menu_item_id=$1', [menuItemId]);
-      await dataSource.query('DELETE FROM public.kms_menu_item_dietary_labels WHERE menu_item_id=$1', [menuItemId]);
-      await dataSource.query('DELETE FROM public.kms_menu_items WHERE menu_item_id=$1', [menuItemId]);
-      await dataSource.query('DELETE FROM public.kms_allergens WHERE allergen_id=$1', [allergenId]);
-      await dataSource.query('DELETE FROM public.kms_dietary_labels WHERE dietary_label_id=$1', [labelId]);
-      await dataSource.query('DELETE FROM public.kms_meal_categories WHERE category_id=$1', [categoryId]);
+      await dataSource.query(
+        'DELETE FROM public.kms_menu_item_allergens WHERE menu_item_id=$1',
+        [menuItemId],
+      );
+      await dataSource.query(
+        'DELETE FROM public.kms_menu_item_dietary_labels WHERE menu_item_id=$1',
+        [menuItemId],
+      );
+      await dataSource.query(
+        'DELETE FROM public.kms_menu_items WHERE menu_item_id=$1',
+        [menuItemId],
+      );
+      await dataSource.query(
+        'DELETE FROM public.kms_allergens WHERE allergen_id=$1',
+        [allergenId],
+      );
+      await dataSource.query(
+        'DELETE FROM public.kms_dietary_labels WHERE dietary_label_id=$1',
+        [labelId],
+      );
+      await dataSource.query(
+        'DELETE FROM public.kms_meal_categories WHERE category_id=$1',
+        [categoryId],
+      );
     }
     if (app) {
       await app.close();
@@ -110,24 +138,38 @@ postgresSuite('KMS read APIs with isolated PostgreSQL (R-02)', () => {
   });
 
   it('TC-KMS-R02-022: reads the inserted meal category from PostgreSQL', async () => {
-    const response = await request(app.getHttpServer()).get('/api/v1/menu/categories').expect(200);
-    expect(response.body).toEqual(expect.arrayContaining([
-      expect.objectContaining({ categoryId, orderStartTime: '11:00:00' }),
-    ]));
+    const response = await request(app.getHttpServer())
+      .get('/api/v1/menu/categories')
+      .expect(200);
+    expect(response.body).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ categoryId, orderStartTime: '11:00:00' }),
+      ]),
+    );
   });
 
   it('TC-KMS-R02-023: reads item detail with allergens and dietary labels from PostgreSQL', async () => {
-    const response = await request(app.getHttpServer()).get(`/api/v1/menu/items/${menuItemId}`).expect(200);
-    expect(response.body).toEqual(expect.objectContaining({
-      menuItemId, categoryId, price: 850, preparationTime: 20, portionLimit: 5,
-      stockStatus: 'LOW_STOCK',
-      category: expect.objectContaining({ categoryId }),
-      allergens: [expect.objectContaining({ allergenId })],
-      dietaryLabels: [expect.objectContaining({ dietaryLabelId: labelId })],
-    }));
+    const response = await request(app.getHttpServer())
+      .get(`/api/v1/menu/items/${menuItemId}`)
+      .expect(200);
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        menuItemId,
+        categoryId,
+        price: 850,
+        preparationTime: 20,
+        portionLimit: 5,
+        stockStatus: 'LOW_STOCK',
+        category: expect.objectContaining({ categoryId }),
+        allergens: [expect.objectContaining({ allergenId })],
+        dietaryLabels: [expect.objectContaining({ dietaryLabelId: labelId })],
+      }),
+    );
   });
 
   it('TC-KMS-R02-024: returns 404 for a nonexistent UUID', async () => {
-    await request(app.getHttpServer()).get(`/api/v1/menu/items/${randomUUID()}`).expect(404);
+    await request(app.getHttpServer())
+      .get(`/api/v1/menu/items/${randomUUID()}`)
+      .expect(404);
   });
 });

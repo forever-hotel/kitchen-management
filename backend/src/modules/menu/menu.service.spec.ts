@@ -19,8 +19,12 @@ const menuItem = {
     categoryId: '22222222-2222-4222-8222-222222222222',
     name: 'Lunch',
   },
-  allergens: [{ allergenId: '33333333-3333-4333-8333-333333333333', name: 'Soy' }],
-  dietaryLabels: [{ dietaryLabelId: '44444444-4444-4444-8444-444444444444', name: 'Halal' }],
+  allergens: [
+    { allergenId: '33333333-3333-4333-8333-333333333333', name: 'Soy' },
+  ],
+  dietaryLabels: [
+    { dietaryLabelId: '44444444-4444-4444-8444-444444444444', name: 'Halal' },
+  ],
 } as MenuItem;
 
 describe('MenuService (R-02)', () => {
@@ -35,7 +39,9 @@ describe('MenuService (R-02)', () => {
 
   it('TC-KMS-R02-002: Given a menu item and relationships, when listed, then all required fields map', async () => {
     const repository = {
-      findAll: jest.fn<() => Promise<MenuItem[]>>().mockResolvedValue([menuItem]),
+      findAll: jest
+        .fn<() => Promise<MenuItem[]>>()
+        .mockResolvedValue([menuItem]),
     } as unknown as MenuItemRepository;
     const service = new MenuService(repository);
 
@@ -51,8 +57,15 @@ describe('MenuService (R-02)', () => {
         portionLimit: 5,
         stockStatus: MenuItemStockStatus.LOW_STOCK,
         imageUrl: null,
-        allergens: [{ allergenId: '33333333-3333-4333-8333-333333333333', name: 'Soy' }],
-        dietaryLabels: [{ dietaryLabelId: '44444444-4444-4444-8444-444444444444', name: 'Halal' }],
+        allergens: [
+          { allergenId: '33333333-3333-4333-8333-333333333333', name: 'Soy' },
+        ],
+        dietaryLabels: [
+          {
+            dietaryLabelId: '44444444-4444-4444-8444-444444444444',
+            name: 'Halal',
+          },
+        ],
       },
     ]);
   });
@@ -74,11 +87,15 @@ describe('MenuService (R-02)', () => {
 
   it('TC-KMS-R02-004: Given an unknown item, when requested, then it returns 404', async () => {
     const repository = {
-      findById: jest.fn<() => Promise<MenuItem | null>>().mockResolvedValue(null),
+      findById: jest
+        .fn<() => Promise<MenuItem | null>>()
+        .mockResolvedValue(null),
     } as unknown as MenuItemRepository;
     const service = new MenuService(repository);
 
-    await expect(service.getItem(menuItem.menuItemId)).rejects.toThrow(NotFoundException);
+    await expect(service.getItem(menuItem.menuItemId)).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   it('TC-KMS-R02-005: Given an item with an unloaded mandatory category, when mapped, then it fails rather than returning incorrect data', async () => {
@@ -90,6 +107,8 @@ describe('MenuService (R-02)', () => {
     } as unknown as MenuItemRepository;
     const service = new MenuService(repository);
 
-    await expect(service.getItem(menuItem.menuItemId)).rejects.toThrow('category relation was not loaded');
+    await expect(service.getItem(menuItem.menuItemId)).rejects.toThrow(
+      'category relation was not loaded',
+    );
   });
 });

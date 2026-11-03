@@ -10,7 +10,11 @@ import { MealCategoryRepository } from './repositories/meal-category.repository.
 @Module({
   imports: [TypeOrmModule.forFeature([MealCategory])],
   controllers: [MenuCategoriesController],
-  providers: [MenuCategoriesService, MealCategoryRepository, KmsManagerReadGuard],
+  providers: [
+    MenuCategoriesService,
+    MealCategoryRepository,
+    KmsManagerReadGuard,
+  ],
   exports: [MealCategoryRepository],
 })
 export class MenuCategoriesModule {}
