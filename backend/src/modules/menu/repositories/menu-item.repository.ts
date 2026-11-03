@@ -4,6 +4,12 @@ import { Repository } from 'typeorm';
 
 import { MenuItem } from '../entities/menu-item.entity.js';
 
+const requiredReadRelations = {
+  category: true,
+  allergens: true,
+  dietaryLabels: true,
+} as const;
+
 @Injectable()
 export class MenuItemRepository {
   constructor(
@@ -13,6 +19,7 @@ export class MenuItemRepository {
 
   findAll(): Promise<MenuItem[]> {
     return this.repository.find({
+      relations: requiredReadRelations,
       order: {
         name: 'ASC',
       },
@@ -21,9 +28,8 @@ export class MenuItemRepository {
 
   findById(menuItemId: string): Promise<MenuItem | null> {
     return this.repository.findOne({
-      where: {
-        menuItemId,
-      },
+      where: { menuItemId },
+      relations: requiredReadRelations,
     });
   }
 }
