@@ -1,7 +1,9 @@
 'use client';
 
 import { Alert, Button, Empty, Input, Spin, Tag, Typography } from 'antd';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+
+import type { KmsMealCategoryData } from '@/types/kms-menu';
 
 import type { MenuManagementScreenProps, MenuStockFilter } from '../types/menu-management.type';
 import {
@@ -11,6 +13,7 @@ import {
   getStockFilter,
 } from '../utils/menu-management.util';
 
+import { AddCategoryModal } from './add-category-modal';
 import styles from './menu-management-screen.module.css';
 
 const stockTabs: readonly { value: MenuStockFilter; label: string }[] = [
@@ -36,6 +39,8 @@ export function MenuManagementScreen({
   dataMode = 'fixtures',
   onRetry,
   onAddCategory,
+  onCreateCategory,
+  onRefreshCategories,
   onAddMenuItem,
   onEditItem,
   onEditWindow,
@@ -43,12 +48,47 @@ export function MenuManagementScreen({
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [stockFilter, setStockFilter] = useState<MenuStockFilter>('ALL');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [refreshedCategories, setRefreshedCategories] = useState<{
+    source: readonly KmsMealCategoryData[];
+    values: readonly KmsMealCategoryData[];
+  } | null>(null);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [creationNotice, setCreationNotice] = useState(false);
+  const createdCategoryId = useRef<string | null>(null);
+  // Prefer fresh parent data when its categories prop changes, without an effect.
+  const currentCategories =
+    refreshedCategories?.source === categories ? refreshedCategories.values : categories;
+
+  const refreshCategories = async () => {
+    if (!onRefreshCategories || refreshing) return;
+    setRefreshing(true);
+    setRefreshError(null);
+    try {
+      const updated = await onRefreshCategories();
+      setRefreshedCategories({ source: categories, values: updated });
+      if (
+        createdCategoryId.current &&
+        updated.some((category) => category.categoryId === createdCategoryId.current)
+      ) {
+        setSelectedCategoryId(createdCategoryId.current);
+      }
+      setCreationNotice(true);
+    } catch {
+      setRefreshError('Category created, but the category list could not be refreshed.');
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   // Match the supplied Figma's Lunch-first preview when Lunch exists.
   const fallbackCategory =
-    categories.find((category) => category.name.trim().toLowerCase() === 'lunch') ?? categories[0];
+    currentCategories.find((category) => category.name.trim().toLowerCase() === 'lunch') ??
+    currentCategories[0];
   const selectedCategory =
-    categories.find((category) => category.categoryId === selectedCategoryId) ?? fallbackCategory;
+    currentCategories.find((category) => category.categoryId === selectedCategoryId) ??
+    fallbackCategory;
 
   const categoryItems = useMemo(
     () => items.filter((item) => item.categoryId === selectedCategory?.categoryId),
@@ -77,15 +117,22 @@ export function MenuManagementScreen({
           <Button
             block
             ghost
-            disabled={!onAddCategory}
-            onClick={onAddCategory}
-            title={!onAddCategory ? 'Category creation is planned for a later issue' : undefined}
+            disabled={!onAddCategory && (!onCreateCategory || !onRefreshCategories)}
+            onClick={() => {
+              if (onCreateCategory && onRefreshCategories) setModalOpen(true);
+              else onAddCategory?.();
+            }}
+            title={
+              !onAddCategory && (!onCreateCategory || !onRefreshCategories)
+                ? 'Category creation requires a connected manager API'
+                : undefined
+            }
           >
             + Add Category
           </Button>
         </div>
         <div role="group" aria-label="Select meal category" className={styles.categoryList}>
-          {categories.map((category) => {
+          {currentCategories.map((category) => {
             const count = items.filter((item) => item.categoryId === category.categoryId).length;
             const isSelected = selectedCategory?.categoryId === category.categoryId;
 
@@ -114,6 +161,27 @@ export function MenuManagementScreen({
       </aside>
 
       <div className={styles.main}>
+        {creationNotice && !refreshError && (
+          <Alert
+            type="success"
+            title="Category created successfully."
+            showIcon
+            closable
+            onClose={() => setCreationNotice(false)}
+          />
+        )}
+        {refreshError && (
+          <Alert
+            type="warning"
+            title={refreshError}
+            showIcon
+            action={
+              <Button onClick={() => void refreshCategories()} loading={refreshing}>
+                Retry refresh
+              </Button>
+            }
+          />
+        )}
         <header className={styles.header}>
           <div>
             <div className={styles.titleRow}>
@@ -310,6 +378,20 @@ export function MenuManagementScreen({
           )}
         </div>
       </div>
+      {onCreateCategory && onRefreshCategories && modalOpen && (
+        <AddCategoryModal
+          open={modalOpen}
+          onCancel={() => setModalOpen(false)}
+          onCreate={async (payload) => {
+            const created = await onCreateCategory(payload);
+            createdCategoryId.current = created.categoryId;
+          }}
+          onCreated={() => {
+            setModalOpen(false);
+            void refreshCategories();
+          }}
+        />
+      )}
     </section>
   );
 }
