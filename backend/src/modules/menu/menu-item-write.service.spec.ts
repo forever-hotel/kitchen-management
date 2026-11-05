@@ -18,7 +18,9 @@ function conflictError(): QueryFailedError {
 describe('R-07 service maps race-safe PostgreSQL constraints', () => {
   it('maps concurrent same-category/name insert into 409', async () => {
     const repository = {
-      createItem: jest.fn(async () => { throw conflictError(); }),
+      createItem: jest.fn(async () => {
+        throw conflictError();
+      }),
     } as unknown as MenuItemRepository;
     const service = new MenuService(repository);
     await expect(service.createItem(create)).rejects.toThrow(ConflictException);
@@ -26,9 +28,13 @@ describe('R-07 service maps race-safe PostgreSQL constraints', () => {
 
   it('maps concurrent same-category/name update into 409', async () => {
     const repository = {
-      updateItem: jest.fn(async () => { throw conflictError(); }),
+      updateItem: jest.fn(async () => {
+        throw conflictError();
+      }),
     } as unknown as MenuItemRepository;
     const service = new MenuService(repository);
-    await expect(service.updateItem(menuItemId, { name: 'Rice' })).rejects.toThrow(ConflictException);
+    await expect(
+      service.updateItem(menuItemId, { name: 'Rice' }),
+    ).rejects.toThrow(ConflictException);
   });
 });

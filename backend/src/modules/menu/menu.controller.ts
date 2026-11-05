@@ -30,15 +30,21 @@ import { MenuService } from './menu.service.js';
 
 @ApiTags('KMS Manager - Menu Items')
 @ApiBearerAuth()
-@ApiUnauthorizedResponse({ description: 'Missing or invalid Gateway staff session.' })
-@ApiForbiddenResponse({ description: 'Only KITCHEN_MANAGER can administer menu items.' })
+@ApiUnauthorizedResponse({
+  description: 'Missing or invalid Gateway staff session.',
+})
+@ApiForbiddenResponse({
+  description: 'Only KITCHEN_MANAGER can administer menu items.',
+})
 @UseGuards(KmsManagerReadGuard)
 @Controller('api/v1/menu/items')
 export class MenuController {
   constructor(private readonly menu: MenuService) {}
 
   @Get()
-  @ApiOperation({ summary: 'List all menu items with category, allergens and dietary labels' })
+  @ApiOperation({
+    summary: 'List all menu items with category, allergens and dietary labels',
+  })
   @ApiOkResponse({ type: MenuItemResponseDto, isArray: true })
   listItems(): Promise<MenuItemResponseDto[]> {
     return this.menu.listItems();
@@ -56,23 +62,36 @@ export class MenuController {
   }
 
   @Post()
-  @ApiOperation({ summary: 'Create menu item and tag links transactionally (manager only)' })
+  @ApiOperation({
+    summary: 'Create menu item and tag links transactionally (manager only)',
+  })
   @ApiBody({ type: CreateMenuItemDto })
   @ApiCreatedResponse({ type: MenuItemResponseDto })
-  @ApiBadRequestResponse({ description: 'Invalid menu values or tag UUID format.' })
-  @ApiNotFoundResponse({ description: 'Category, allergen or dietary label does not exist.' })
-  @ApiConflictResponse({ description: 'Menu item name already exists within this category.' })
+  @ApiBadRequestResponse({
+    description: 'Invalid menu values or tag UUID format.',
+  })
+  @ApiNotFoundResponse({
+    description: 'Category, allergen or dietary label does not exist.',
+  })
+  @ApiConflictResponse({
+    description: 'Menu item name already exists within this category.',
+  })
   createItem(@Body() body: unknown): Promise<MenuItemResponseDto> {
     return this.menu.createItem(body);
   }
 
   @Patch(':menuItemId')
-  @ApiOperation({ summary: 'Update menu item and replace supplied tag links transactionally (manager only)' })
+  @ApiOperation({
+    summary:
+      'Update menu item and replace supplied tag links transactionally (manager only)',
+  })
   @ApiBody({ type: UpdateMenuItemDto })
   @ApiOkResponse({ type: MenuItemResponseDto })
   @ApiBadRequestResponse({ description: 'Invalid menu UUID or fields.' })
   @ApiNotFoundResponse({ description: 'Menu item, category or tag not found.' })
-  @ApiConflictResponse({ description: 'Menu item name already exists within this category.' })
+  @ApiConflictResponse({
+    description: 'Menu item name already exists within this category.',
+  })
   updateItem(
     @Param('menuItemId', new ParseUUIDPipe()) menuItemId: string,
     @Body() body: unknown,

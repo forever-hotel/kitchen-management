@@ -29,7 +29,10 @@ const fields = {
   dietaryLabelIds: [dietaryLabelId],
 };
 
-function buildRepositories({ missingAllergen = false, duplicate = false } = {}) {
+function buildRepositories({
+  missingAllergen = false,
+  duplicate = false,
+} = {}) {
   const created = {
     menuItemId,
     categoryId,
@@ -53,10 +56,14 @@ function buildRepositories({ missingAllergen = false, duplicate = false } = {}) 
     }),
     create: jest.fn((input: object) => ({ ...input, menuItemId }) as MenuItem),
     save: jest.fn(async (item: MenuItem) => item),
-    merge: jest.fn((target: MenuItem, changes: Partial<MenuItem>) => Object.assign(target, changes)),
+    merge: jest.fn((target: MenuItem, changes: Partial<MenuItem>) =>
+      Object.assign(target, changes),
+    ),
   };
   const catRepo = { findOne: jest.fn(async () => category) };
-  const allergenRepo = { find: jest.fn(async () => missingAllergen ? [] : [allergen]) };
+  const allergenRepo = {
+    find: jest.fn(async () => (missingAllergen ? [] : [allergen])),
+  };
   const dietaryRepo = { find: jest.fn(async () => [dietaryLabel]) };
   const manager = {
     getRepository: (entity: unknown) => {
@@ -67,12 +74,22 @@ function buildRepositories({ missingAllergen = false, duplicate = false } = {}) 
       throw new Error('Unexpected entity');
     },
   };
-  const transaction = jest.fn(async (fn: (transactionManager: EntityManager) => Promise<MenuItem | null>) =>
-    fn(manager as unknown as EntityManager));
+  const transaction = jest.fn(
+    async (
+      fn: (transactionManager: EntityManager) => Promise<MenuItem | null>,
+    ) => fn(manager as unknown as EntityManager),
+  );
   const repository = new MenuItemRepository({
     manager: { transaction },
   } as unknown as Repository<MenuItem>);
-  return { repository, transaction, itemRepo, catRepo, allergenRepo, dietaryRepo };
+  return {
+    repository,
+    transaction,
+    itemRepo,
+    catRepo,
+    allergenRepo,
+    dietaryRepo,
+  };
 }
 
 describe('R-07 MenuItemRepository transaction and tag writes', () => {
@@ -81,24 +98,32 @@ describe('R-07 MenuItemRepository transaction and tag writes', () => {
     const created = await repository.createItem(fields);
     expect(created.menuItemId).toBe(menuItemId);
     expect(transaction).toHaveBeenCalledTimes(1);
-    expect(itemRepo.create).toHaveBeenCalledWith(expect.objectContaining({
-      name: 'Rice',
-      allergens: [allergen],
-      dietaryLabels: [dietaryLabel],
-    }));
+    expect(itemRepo.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Rice',
+        allergens: [allergen],
+        dietaryLabels: [dietaryLabel],
+      }),
+    );
     expect(itemRepo.save).toHaveBeenCalledTimes(1);
   });
 
   it('TC-KMS-R07-015: missing allergen prevents save within the transaction', async () => {
-    const { repository, itemRepo, transaction } = buildRepositories({ missingAllergen: true });
-    await expect(repository.createItem(fields)).rejects.toThrow(NotFoundException);
+    const { repository, itemRepo, transaction } = buildRepositories({
+      missingAllergen: true,
+    });
+    await expect(repository.createItem(fields)).rejects.toThrow(
+      NotFoundException,
+    );
     expect(itemRepo.save).not.toHaveBeenCalled();
     expect(transaction).toHaveBeenCalledTimes(1);
   });
 
   it('TC-KMS-R07-016: duplicate category/name prevents insertion', async () => {
     const { repository, itemRepo } = buildRepositories({ duplicate: true });
-    await expect(repository.createItem(fields)).rejects.toThrow(ConflictException);
+    await expect(repository.createItem(fields)).rejects.toThrow(
+      ConflictException,
+    );
     expect(itemRepo.save).not.toHaveBeenCalled();
   });
 
@@ -115,10 +140,12 @@ describe('R-07 MenuItemRepository transaction and tag writes', () => {
       where: { menuItemId },
       lock: { mode: 'pessimistic_write' },
     });
-    expect(itemRepo.save).toHaveBeenCalledWith(expect.objectContaining({
-      price: 900,
-      allergens: [],
-      dietaryLabels: [],
-    }));
+    expect(itemRepo.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        price: 900,
+        allergens: [],
+        dietaryLabels: [],
+      }),
+    );
   });
 });

@@ -16,9 +16,17 @@ import { MenuItemRepository } from './repositories/menu-item.repository.js';
 
 function translateKnownConstraint(error: unknown): void {
   if (!(error instanceof QueryFailedError)) return;
-  const driverError = error.driverError as { code?: string; constraint?: string };
-  if (driverError.code === '23505' && driverError.constraint === 'uq_menu_item_category_name') {
-    throw new ConflictException('A menu item with this name already exists in the category');
+  const driverError = error.driverError as {
+    code?: string;
+    constraint?: string;
+  };
+  if (
+    driverError.code === '23505' &&
+    driverError.constraint === 'uq_menu_item_category_name'
+  ) {
+    throw new ConflictException(
+      'A menu item with this name already exists in the category',
+    );
   }
   if (
     driverError.code === '23503' &&
@@ -28,7 +36,9 @@ function translateKnownConstraint(error: unknown): void {
       'kms_menu_item_dietary_labels_dietary_label_id_fkey',
     ].includes(driverError.constraint ?? '')
   ) {
-    throw new NotFoundException('One or more referenced categories or tags no longer exist');
+    throw new NotFoundException(
+      'One or more referenced categories or tags no longer exist',
+    );
   }
   if (
     driverError.code === '23514' &&
@@ -67,7 +77,10 @@ export class MenuService {
     }
   }
 
-  async updateItem(menuItemId: string, body: unknown): Promise<MenuItemResponseDto> {
+  async updateItem(
+    menuItemId: string,
+    body: unknown,
+  ): Promise<MenuItemResponseDto> {
     const fields = validateMenuItemUpdate(body);
     try {
       const item = await this.menuItems.updateItem(menuItemId, fields);

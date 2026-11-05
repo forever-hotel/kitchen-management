@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository, type EntityManager } from 'typeorm';
 
@@ -47,8 +51,14 @@ export class MenuItemRepository {
       const items = manager.getRepository(MenuItem);
       const category = await this.requireCategory(manager, fields.categoryId);
       await this.rejectDuplicate(items, fields.categoryId, fields.name);
-      const allergens = await this.requireAllergens(manager, fields.allergenIds);
-      const dietaryLabels = await this.requireDietaryLabels(manager, fields.dietaryLabelIds);
+      const allergens = await this.requireAllergens(
+        manager,
+        fields.allergenIds,
+      );
+      const dietaryLabels = await this.requireDietaryLabels(
+        manager,
+        fields.dietaryLabelIds,
+      );
 
       const created = items.create({
         categoryId: fields.categoryId,
@@ -72,7 +82,10 @@ export class MenuItemRepository {
    * A write lock serializes competing updates to the same menu item.
    * Absent PATCH tag arrays preserve links; [] removes them. No tag creation.
    */
-  updateItem(menuItemId: string, patch: MenuItemPatchFields): Promise<MenuItem | null> {
+  updateItem(
+    menuItemId: string,
+    patch: MenuItemPatchFields,
+  ): Promise<MenuItem | null> {
     return this.repository.manager.transaction(async (manager) => {
       const items = manager.getRepository(MenuItem);
       // Lock the base row without LEFT JOINs (PostgreSQL forbids FOR UPDATE on
@@ -112,12 +125,16 @@ export class MenuItemRepository {
         categoryId,
         category,
         name: itemName,
-        description: patch.description ?? (patch.description === null ? null : existing.description),
+        description:
+          patch.description ??
+          (patch.description === null ? null : existing.description),
         price: patch.price ?? existing.price,
         preparationTime: patch.preparationTime ?? existing.preparationTime,
         portionLimit: patch.portionLimit ?? existing.portionLimit,
         stockStatus: patch.stockStatus ?? existing.stockStatus,
-        imageUrl: patch.imageUrl ?? (patch.imageUrl === null ? null : existing.imageUrl),
+        imageUrl:
+          patch.imageUrl ??
+          (patch.imageUrl === null ? null : existing.imageUrl),
         allergens,
         dietaryLabels,
       });
@@ -126,36 +143,61 @@ export class MenuItemRepository {
     });
   }
 
-  private async requireCategory(manager: EntityManager, categoryId: string): Promise<MealCategory> {
-    const category = await manager.getRepository(MealCategory).findOne({ where: { categoryId } });
+  private async requireCategory(
+    manager: EntityManager,
+    categoryId: string,
+  ): Promise<MealCategory> {
+    const category = await manager
+      .getRepository(MealCategory)
+      .findOne({ where: { categoryId } });
     if (!category) throw new NotFoundException('Meal category not found');
     return category;
   }
 
-  private async requireAllergens(manager: EntityManager, ids: string[]): Promise<Allergen[]> {
+  private async requireAllergens(
+    manager: EntityManager,
+    ids: string[],
+  ): Promise<Allergen[]> {
     if (!ids.length) return [];
-    const values = await manager.getRepository(Allergen).find({ where: { allergenId: In(ids) } });
-    if (values.length !== ids.length) throw new NotFoundException('One or more allergens do not exist');
+    const values = await manager
+      .getRepository(Allergen)
+      .find({ where: { allergenId: In(ids) } });
+    if (values.length !== ids.length)
+      throw new NotFoundException('One or more allergens do not exist');
     return values;
   }
 
-  private async requireDietaryLabels(manager: EntityManager, ids: string[]): Promise<DietaryLabel[]> {
+  private async requireDietaryLabels(
+    manager: EntityManager,
+    ids: string[],
+  ): Promise<DietaryLabel[]> {
     if (!ids.length) return [];
-    const values = await manager.getRepository(DietaryLabel).find({ where: { dietaryLabelId: In(ids) } });
-    if (values.length !== ids.length) throw new NotFoundException('One or more dietary labels do not exist');
+    const values = await manager
+      .getRepository(DietaryLabel)
+      .find({ where: { dietaryLabelId: In(ids) } });
+    if (values.length !== ids.length)
+      throw new NotFoundException('One or more dietary labels do not exist');
     return values;
   }
 
   private async rejectDuplicate(
-    items: Repository<MenuItem>, categoryId: string, name: string, exceptId?: string,
+    items: Repository<MenuItem>,
+    categoryId: string,
+    name: string,
+    exceptId?: string,
   ): Promise<void> {
     const same = await items.findOne({ where: { categoryId, name } });
     if (same && same.menuItemId !== exceptId) {
-      throw new ConflictException('A menu item with this name already exists in the category');
+      throw new ConflictException(
+        'A menu item with this name already exists in the category',
+      );
     }
   }
 
-  private async requireSavedItem(items: Repository<MenuItem>, menuItemId: string): Promise<MenuItem> {
+  private async requireSavedItem(
+    items: Repository<MenuItem>,
+    menuItemId: string,
+  ): Promise<MenuItem> {
     const item = await items.findOne({
       where: { menuItemId },
       relations: requiredReadRelations,
