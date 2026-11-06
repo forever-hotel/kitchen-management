@@ -95,13 +95,13 @@ describe('KMS route foundation', () => {
 
     expect(
       screen.getByRole('article', {
-        name: 'Breakfast window',
+        name: 'Breakfast ordering window',
       }),
     ).toBeInTheDocument();
 
     expect(
       screen.getByRole('article', {
-        name: 'Lunch window',
+        name: 'Lunch ordering window',
       }),
     ).toBeInTheDocument();
   });
