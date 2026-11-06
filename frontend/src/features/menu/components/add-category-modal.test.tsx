@@ -81,7 +81,7 @@ function renderConnected(
 }
 
 function openModal() {
-  fireEvent.click(screen.getByRole('button', { name: '+ Add Category' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Add Category' }));
   return screen.getByRole('dialog', { name: 'Add Category' });
 }
 
@@ -188,6 +188,6 @@ describe('R-06 Add Category modal', () => {
         <MenuManagementScreen categories={MENU_CATEGORIES_FIXTURE} items={MENU_ITEMS_R03_FIXTURE} />
       </AppProviders>,
     );
-    expect(screen.getByRole('button', { name: '+ Add Category' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Add Category' })).toBeDisabled();
   });
 });

@@ -108,8 +108,8 @@ describe('R-01 and R-03 menu management screen', () => {
 
     renderMenu({ onAddCategory, onAddMenuItem, onEditItem, onEditWindow });
 
-    fireEvent.click(screen.getByRole('button', { name: '+ Add Category' }));
-    fireEvent.click(screen.getByRole('button', { name: '+ Add Menu Item' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add Category' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add Menu Item' }));
     fireEvent.click(screen.getByRole('button', { name: 'Edit Window' }));
     fireEvent.click(screen.getByRole('button', { name: 'Edit Chicken Fried Rice' }));
 
@@ -124,8 +124,8 @@ describe('R-01 and R-03 menu management screen', () => {
   it('TC-KMS-R03-007: unavailable edit/add actions stay disabled until implemented', () => {
     renderMenu();
 
-    expect(screen.getByRole('button', { name: '+ Add Menu Item' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Add Menu Item' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Edit Chicken Fried Rice' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: '+ Add Category' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Add Category' })).toBeDisabled();
   });
 });

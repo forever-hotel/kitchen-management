@@ -39,9 +39,15 @@
   font: inherit;
 }
 .sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
   margin: 18px 0 6px;
   font-size: 14px;
   font-weight: 700;
+}
+.sectionTitle :global(.anticon) {
+  color: #1a3c5e;
 }
 .tagChoices {
   display: flex;
@@ -86,6 +92,9 @@
   object-fit: contain;
 }
 .imagePlaceholder {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 60px 10px;
   color: #5a5650;
   font-size: 13px;
@@ -125,3 +134,31 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Issue #73 Figma polish layer — do not duplicate */
+/* Figma Add/Edit Menu visual hierarchy without changing form validation. */
+.layout { grid-template-columns: minmax(0, 1.6fr) minmax(265px, .9fr); gap: 22px; }
+.formColumn { padding: 6px 2px 0; }
+.formGrid { gap: 16px; }
+.field { gap: 7px; }
+.field label { font-size: 11px; color: #5a5650; text-transform: uppercase; letter-spacing: .025em; font-weight: 700; }
+.field :global(.ant-input), .field :global(.ant-input-affix-wrapper) { min-height: 42px; border-radius: 8px; }
+.field :global(.ant-input-textarea) textarea { min-height: 78px; border-radius: 8px; }
+.select { min-height: 42px; font-size: 13px; }
+.sectionTitle { color: #1a3c5e; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; margin: 20px 0 8px; }
+.tagChoices { gap: 8px; padding: 10px 0 2px; }
+.tagChoices :global(.ant-checkbox-wrapper) { padding: 7px 10px; margin: 0; border-radius: 18px; border: 1px solid #ddd8cf; background: #f9f7f4; font-size: 12px; }
+.tagChoices :global(.ant-checkbox-wrapper:hover) { border-color: #2e5f8a; }
+.actions { padding-top: 17px; border-top: 1px solid #ddd8cf; margin-top: 20px; }
+.actions :global(.ant-btn) { min-height: 40px; min-width: 102px; font-size: 12px; }
+.actions :global(.ant-btn-primary) { background: #1a3c5e; }
+.guestPreview { border-radius: 10px; align-self: start; }
+.previewEyebrow { background: #e8eef4; color: #1a3c5e; padding: 12px 14px; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
+.previewImage { min-height: 160px; }
+.previewBody { padding: 16px; }
+.previewName { color: #1a3c5e !important; font-size: 18px !important; }
+.previewDescription { font-size: 12px; }
+.previewFacts { gap: 8px 16px; font-size: 12px; }
+.previewLabels :global(.ant-tag) { border-radius: 6px; }
+@media(max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+@media(max-width: 680px) { .formGrid { grid-template-columns: minmax(0, 1fr); } }

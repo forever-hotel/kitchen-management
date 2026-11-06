@@ -36,7 +36,9 @@ export function KmsShell({ children, role = null, previewNavigation = false }: K
 
       <Header className="kms-shell__header">
         <div className="kms-shell__brand">
-          <Typography.Text className="kms-shell__hotel">Forever Hotel</Typography.Text>
+          <Typography.Text className="kms-shell__hotel">
+            FOREVER <span className="kms-shell__accent">· KMS</span>
+          </Typography.Text>
 
           <Typography.Title level={1} className="kms-shell__title">
             Kitchen Management System
@@ -51,6 +53,7 @@ export function KmsShell({ children, role = null, previewNavigation = false }: K
                   {item.label}
                 </Link>
               ))}
+              {role && <span className="kms-shell__role">{role.replace(/_/g, ' ')}</span>}
               <KmsLogoutButton />
             </Space>
           </nav>

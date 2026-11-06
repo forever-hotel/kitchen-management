@@ -1,8 +1,21 @@
 'use client';
 
 import { Alert, Button, Typography } from 'antd';
+import {
+  AppstoreOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  CloseCircleOutlined,
+  CoffeeOutlined,
+  FireOutlined,
+  ReloadOutlined,
+  RightOutlined,
+  SaveOutlined,
+  SunOutlined,
+  UndoOutlined,
+} from '@ant-design/icons';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 
 import type { KmsMealCategoryData, KmsOrderingWindowData } from '@/types/kms-menu';
 
@@ -34,11 +47,11 @@ interface WindowRow {
 }
 
 const categoryOrder = ['breakfast', 'lunch', 'tea-time', 'dinner'];
-const categoryIcons: Record<string, string> = {
-  breakfast: '☀',
-  lunch: '☀',
-  'tea-time': '☕',
-  dinner: '☾',
+const categoryIcons: Record<string, ReactNode> = {
+  breakfast: <SunOutlined />,
+  lunch: <SunOutlined />,
+  'tea-time': <CoffeeOutlined />,
+  dinner: <FireOutlined />,
 };
 
 function clockLabel(now: Date): string {
@@ -74,7 +87,7 @@ function WindowCard({
         ? `Opens at ${displayTime(window.orderStartTime)}`
         : 'Closed';
   const cardId = `window-${window.categoryId}`;
-  const icon = categoryIcons[category.toLowerCase()] ?? '◷';
+  const icon = categoryIcons[category.toLowerCase()] ?? <AppstoreOutlined />;
   const update = async () => {
     if (!editable || saving || reloadPending) return;
     const { patch, error: validationError } = buildWindowPatch(window, start, cutoff);
@@ -129,7 +142,16 @@ function WindowCard({
           </div>
         </div>
         <span className={`${styles.status} ${styles[`status${state}`]}`}>
-          <span aria-hidden="true">●</span> {statusText}
+          <span aria-hidden="true">
+            {state === 'OPEN' ? (
+              <CheckCircleOutlined />
+            ) : state === 'UPCOMING' ? (
+              <ClockCircleOutlined />
+            ) : (
+              <CloseCircleOutlined />
+            )}
+          </span>{' '}
+          {statusText}
         </span>
       </div>
 
@@ -187,12 +209,19 @@ function WindowCard({
       )}
       <div className={styles.actions}>
         {reloadPending ? (
-          <Button type="primary" loading={saving} disabled={saving} onClick={() => void retry()}>
+          <Button
+            type="primary"
+            icon={<ReloadOutlined aria-hidden="true" />}
+            loading={saving}
+            disabled={saving}
+            onClick={() => void retry()}
+          >
             Retry refresh
           </Button>
         ) : (
           <Button
             type="primary"
+            icon={<SaveOutlined aria-hidden="true" />}
             loading={saving}
             disabled={!editable || saving || !isDirty}
             onClick={() => void update()}
@@ -201,6 +230,7 @@ function WindowCard({
           </Button>
         )}
         <Button
+          icon={<UndoOutlined aria-hidden="true" />}
           disabled={saving || reloadPending || !isDirty}
           onClick={() => {
             setStart(window.orderStartTime.slice(0, 5));
@@ -301,7 +331,9 @@ export function OrderingWindowsScreen({
     <section aria-labelledby="time-windows-heading" className={styles.workspace}>
       <nav aria-label="Breadcrumb" className={styles.breadcrumb}>
         <Link href="/menu-management">Menu Management</Link>
-        <span aria-hidden="true">›</span>
+        <span aria-hidden="true">
+          <RightOutlined />
+        </span>
         <span>Ordering Time Window Settings</span>
       </nav>
       <div className={styles.pageGrid}>
@@ -319,6 +351,7 @@ export function OrderingWindowsScreen({
             <div className={styles.headerControls}>
               <span className={styles.policyChip}>Asia/Colombo · saved cutoff is final</span>
               <Button
+                icon={<ReloadOutlined aria-hidden="true" />}
                 disabled={!editable || refreshing}
                 loading={refreshing}
                 onClick={() => void refresh()}
@@ -331,7 +364,7 @@ export function OrderingWindowsScreen({
             <Alert
               type="info"
               title="Feature scaffold"
-              description="Local Figma preview with sample times; no hotel records were loaded. Save and refresh require an authenticated manager API."
+              description="Sample time windows only. No hotel records loaded; saving requires an authenticated manager API."
               showIcon
             />
           )}

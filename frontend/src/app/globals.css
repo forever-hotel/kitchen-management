@@ -181,3 +181,99 @@ textarea:focus-visible {
   font-weight: 700;
   letter-spacing: 0.08em;
 }
+
+/* Issue #73 Figma polish layer — do not duplicate */
+/* R-13 visual refinement: KMS shared header, scoped to existing shell. */
+.kms-shell .kms-shell__header {
+  min-height: 64px;
+  height: auto;
+  padding: 10px clamp(16px, 2.2vw, 32px);
+  gap: 26px;
+  flex-wrap: wrap;
+  background: #12263a;
+  border-bottom: 1px solid rgb(255 255 255 / 14%);
+  line-height: 1.35;
+}
+.kms-shell .kms-shell__brand {
+  flex: 0 0 auto;
+  min-width: 0;
+  flex-direction: row;
+  align-items: center;
+}
+.kms-shell__header .kms-shell__hotel {
+  color: #fff !important;
+  font-size: 15px !important;
+  font-weight: 800;
+  letter-spacing: .07em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.kms-shell__header .kms-shell__accent { color: #c9920d; }
+.kms-shell__header .kms-shell__title {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  padding: 0 !important;
+  border: 0 !important;
+  margin: -1px !important;
+}
+.kms-shell .kms-shell__nav {
+  margin-left: 0;
+  min-width: 0;
+  flex: 1 1 550px;
+}
+.kms-shell .kms-shell__nav > .ant-space { width: 100%; row-gap: 8px; }
+.kms-shell .kms-shell__nav-link {
+  min-height: 40px;
+  padding: 8px 14px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.kms-shell .kms-shell__nav-link:hover,
+.kms-shell .kms-shell__nav-link:focus-visible { background: #2e5f8a; color: #fff; }
+.kms-shell .kms-shell__role {
+  display: inline-flex;
+  padding: 7px 12px;
+  min-height: 36px;
+  align-items: center;
+  border: 1px solid #c9920d;
+  border-radius: 20px;
+  color: #f5d17a;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  white-space: nowrap;
+}
+.kms-shell .kms-shell__content { min-width: 0; }
+.kms-shell .kms-shell__main {
+  width: 100%;
+  max-width: none;
+  min-height: calc(100vh - 124px);
+  padding: 24px;
+}
+.kms-shell .kms-shell__footer {
+  padding: 14px;
+  font-size: 12px;
+  color: #5a5650;
+}
+@media (max-width: 820px) {
+  .kms-shell .kms-shell__header { gap: 8px 16px; }
+  .kms-shell .kms-shell__nav { flex-basis: 100%; }
+  .kms-shell .kms-shell__nav-link { padding: 8px 10px; }
+  .kms-shell .kms-shell__main { padding: 16px; }
+}
+/* Highlight the route already present in the authenticated workspace, without extra JS. */
+.kms-shell:has(#menu-management-heading) .kms-shell__nav-link[href='/menu-management'],
+.kms-shell:has(#time-windows-heading) .kms-shell__nav-link[href='/time-windows'] {
+  background: #2e5f8a;
+  color: #fff;
+}
+.kms-shell .ant-modal { max-width: calc(100vw - 24px); }
+@media (max-width: 720px) {
+  .kms-shell .kms-shell__header .kms-shell__role { font-size: 10px; }
+}

@@ -397,3 +397,54 @@
     width: 100%;
   }
 }
+
+/* Issue #73 Figma polish layer — do not duplicate */
+/* Figma R-12 visual scale: preserve current start/cutoff-only contract. */
+.workspace { font-size: 13px; }
+.breadcrumb { padding: 11px 24px; font-size: 11px; }
+.pageGrid { grid-template-columns: minmax(0, 1fr) minmax(246px, 285px); gap: 20px; padding: 22px 24px 34px; }
+.leftColumn, .rightColumn { gap: 14px; }
+.heading { gap: 10px; }
+.heading .title { font-size: 23px !important; font-weight: 700 !important; }
+.heading .description { font-size: 12px; line-height: 1.6; }
+.headerControls { justify-content: flex-start; }
+.policyChip { min-height: 33px; display: inline-flex; align-items: center; }
+.headerControls :global(.ant-btn) { min-height: 34px; font-size: 12px; }
+.leftColumn > :global(.ant-alert) { padding: 9px 14px; border-radius: 9px; background: #e8eef4; border-color: #cbd6e2; }
+.leftColumn > :global(.ant-alert) :global(.ant-alert-message) { color: #1a3c5e; font-size: 12px; font-weight: 700; }
+.leftColumn > :global(.ant-alert) :global(.ant-alert-description) { font-size: 11px; line-height: 1.45; }
+.count { font-size: 11px; }
+.cards { gap: 14px; }
+.card { padding: 15px 17px; border-radius: 10px; border-color: #d0d8cf; }
+.activeCard { border-color: #2e5f8a; box-shadow: inset 3px 0 0 #1a3c5e; }
+.cardHeader { align-items: center; }
+.mealTitle { gap: 11px; }
+.mealIcon { width: 40px; height: 40px; min-width: 40px; font-size: 19px; background: #f9f7f4; }
+.mealTitle h3 { font-size: 16px; }
+.mealTitle p { font-size: 11px; }
+.status { padding: 5px 10px; font-size: 11px; }
+.formGrid { margin-top: 11px; gap: 11px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(160px, .9fr); }
+.field label, .boundaryBox strong { font-size: 10px; }
+.field input { min-height: 39px; font-size: 13px; background: #fff; }
+.boundaryBox { min-height: 39px; background: #f9f7f4; }
+.boundaryBox span { font-size: 11px; }
+.activeInfo { margin: 10px 0 0; padding: 8px 10px; font-size: 11px; }
+.previewOnly { margin: 9px 0 0; font-size: 11px; }
+.actions { margin-top: 10px; padding-top: 10px; }
+.actions :global(.ant-btn) { min-height: 36px; font-size: 11px; font-weight: 600; }
+.sidePanel { padding: 16px 14px; border-radius: 10px; }
+.sidePanel h3 { margin: 0 0 11px; padding-bottom: 9px; font-size: 13px; }
+.sidePanel p { font-size: 11px; line-height: 1.55; }
+.timeline { gap: 10px; }
+.timelineBar { padding: 9px 10px; }
+@media(max-width: 1050px) { .pageGrid { grid-template-columns: minmax(0, 1fr) 245px; gap: 14px; } }
+@media(max-width: 880px) {
+  .pageGrid { grid-template-columns: minmax(0, 1fr); }
+  .rightColumn { grid-template-columns: repeat(auto-fit, minmax(235px, 1fr)); }
+}
+@media(max-width: 600px) {
+  .pageGrid { padding: 15px; }
+  .formGrid { grid-template-columns: minmax(0, 1fr); }
+  .boundaryBox { grid-column: 1; }
+  .card { padding: 13px; }
+}

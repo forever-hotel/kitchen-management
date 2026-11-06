@@ -77,7 +77,18 @@
   background: #1a3c5e;
 }
 
+.categoryIcon {
+  display: grid;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  color: #c9920d;
+  font-size: 17px;
+}
+
 .categoryDetails {
+  flex: 1 1 auto;
   display: grid;
   min-width: 0;
   gap: 3px;
@@ -469,4 +480,97 @@
   .table td:last-child {
     border-bottom: 0;
   }
+}
+
+/* Issue #73 Figma polish layer — do not duplicate */
+/* Figma-aligned KMS manager workspace: brand palette and structures preserved. */
+.workspace {
+  grid-template-columns: clamp(206px, 18.1vw, 244px) minmax(0, 1fr);
+  background: #f5f3ef;
+  font-size: 13px;
+}
+.sidebar { background: #12263a; }
+.sidebarHeader { padding: 22px 14px 16px; gap: 14px; }
+.eyebrow { font-size: 11px; letter-spacing: .105em; }
+.sidebarHeader :global(.ant-btn) {
+  min-height: 44px;
+  border: 1px solid #c9920d;
+  color: #f4c752;
+  font-weight: 700;
+  background: transparent;
+}
+.sidebarHeader :global(.ant-btn:hover) { color: #fff !important; border-color: #e6b23d !important; background: #1a3c5e !important; }
+.categoryList { padding: 12px 9px; gap: 8px; }
+.categoryButton { gap: 8px; min-height: 62px; padding: 11px 10px; border-radius: 9px; }
+.categoryButton:hover { background: #1a3c5e; }
+.selectedCategory { background: #1a3c5e; border-color: #3c6f9b; }
+.categoryDetails strong { font-size: 13px; }
+.categoryDetails small { margin-top: 1px; font-size: 11px; color: #b6c6d4; }
+.categoryCount { padding: 4px 7px; min-width: 28px; }
+.main { background: #fff; min-width: 0; }
+.header { min-height: 110px; padding: 22px clamp(18px, 2vw, 32px); gap: 18px; background: #fff; }
+.header > div:first-child { min-width: 245px; }
+.titleRow { gap: 10px; }
+.titleRow .title { font-size: 23px !important; font-weight: 700 !important; line-height: 1.28; color: #1a1a18 !important; }
+.configuredTag {
+  padding: 2px 10px; border-radius: 20px;
+  border: 1px solid #91bfa0; background: #ebf5ee; color: #1a6b3c; font-size: 11px; font-weight: 700;
+}
+.subtitle { margin-top: 4px; font-size: 13px; }
+.previewNote { font-size: 11px; margin-top: 5px; font-weight: 500; }
+.headerActions { justify-content: flex-end; gap: 8px; }
+.headerActions :global(.ant-btn) { min-height: 40px; padding: 0 14px; font-size: 12px; font-weight: 600; }
+.headerActions :global(.ant-btn-primary) { background: #1a3c5e; box-shadow: none; }
+.headerActions :global(.ant-btn-primary:hover) { background: #2e5f8a !important; }
+.windowChip { min-height: 40px; padding: 0 14px; border-radius: 8px; font-weight: 600; }
+.filters { gap: 12px; padding: 16px clamp(18px, 2vw, 32px); background: #fff; align-items: center; }
+.search { flex: 1 1 310px; }
+.search :global(.ant-input-affix-wrapper) { min-height: 42px; border-radius: 8px; }
+.stockTabs { gap: 7px; flex: 0 1 auto; }
+.stockTab { min-height: 42px; font-size: 12px; padding: 8px 12px; white-space: nowrap; }
+.stockTab:nth-child(3):not(.activeStockTab) { border-color: #c9920d; color: #7a4f00; }
+.stockTab:nth-child(4):not(.activeStockTab) { border-color: #8b1a1a; color: #8b1a1a; }
+.results { min-width: 0; overflow-x: auto; }
+.resultsSummary { font-size: 11px; padding: 9px clamp(18px, 2vw, 32px); }
+.table { min-width: 1000px; width: 100%; table-layout: fixed; font-size: 12px; }
+.table th, .table td { padding: 12px 10px; vertical-align: middle; border-bottom-color: #e5e0d8; }
+.table th { padding-top: 14px; padding-bottom: 14px; background: #f5f3ef; font-size: 10px; letter-spacing: .035em; }
+.table th:first-child { width: 26%; }
+.table th:nth-child(2) { width: 18%; }
+.table th:nth-child(3) { width: 11%; }
+.table th:nth-child(4) { width: 9%; }
+.table th:nth-child(5) { width: 9%; }
+.table th:nth-child(6) { width: 19%; }
+.table th:last-child { width: 8%; }
+.table tbody tr { transition: background-color .15s ease; }
+.table tbody tr:hover { background: #f9f7f4; }
+.table tbody tr:nth-child(even) { background: #fbfaf8; }
+.itemCell { gap: 10px; min-width: 0; }
+.itemCell > span:last-child { min-width: 0; }
+.itemCell strong { color: #1a1a18; font-size: 12px; line-height: 1.35; }
+.itemCell small { max-width: 245px; font-size: 11px; line-height: 1.45; }
+.itemThumb { width: 42px; height: 42px; min-width: 42px; border-radius: 8px; background: #e8eef4; color: #1a3c5e; }
+.tagGroup :global(.ant-tag) { border-radius: 6px; padding: 2px 7px; font-size: 11px; }
+.price { color: #1a3c5e; font-size: 13px; font-weight: 800; white-space: nowrap; }
+.table td:last-child :global(.ant-btn) { min-height: 34px; font-size: 12px; padding: 0 9px; }
+.priceNote { font-size: 11px; padding: 12px 22px 18px; }
+@media (max-width: 1100px) {
+  .header, .filters { flex-wrap: wrap; }
+  .headerActions { justify-content: flex-start; }
+  .table { min-width: 1000px; }
+}
+@media (max-width: 720px) {
+  .workspace { display: block; margin: -16px; }
+  .sidebarHeader { padding: 14px; }
+  .categoryList { display: flex; overflow-x: auto; }
+  .categoryButton { min-width: 160px; }
+  .header, .filters { padding: 16px; }
+  .headerActions { justify-content: flex-start; }
+  .results { overflow-x: auto; }
+  .table { display: table; min-width: 1000px; padding: 0; }
+  .table thead { position: static; width: auto; height: auto; overflow: visible; clip: auto; white-space: normal; }
+  .table tbody { display: table-row-group; }
+  .table tr { display: table-row; margin: 0; border: 0; }
+  .table td { display: table-cell; padding: 12px 8px; }
+  .table td::before { content: none; }
 }

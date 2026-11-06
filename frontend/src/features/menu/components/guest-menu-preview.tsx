@@ -1,6 +1,7 @@
 'use client';
 
 import { Image, Tag, Typography } from 'antd';
+import { PictureOutlined } from '@ant-design/icons';
 
 import type { KmsMealCategoryData } from '@/types/kms-menu';
 
@@ -52,7 +53,7 @@ export function GuestMenuPreview({
           />
         ) : (
           <div className={styles.imagePlaceholder} role="img" aria-label="No menu image provided">
-            Image preview
+            <PictureOutlined aria-hidden="true" /> Image preview
           </div>
         )}
       </div>

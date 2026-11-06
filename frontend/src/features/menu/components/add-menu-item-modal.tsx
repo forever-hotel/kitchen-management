@@ -1,6 +1,15 @@
 'use client';
 
 import { Alert, Button, Checkbox, Input, Modal } from 'antd';
+import {
+  CheckCircleOutlined,
+  CloseOutlined,
+  EditOutlined,
+  ExclamationCircleOutlined,
+  LinkOutlined,
+  PlusOutlined,
+  SaveOutlined,
+} from '@ant-design/icons';
 import { useState } from 'react';
 
 import type { KmsMealCategoryData, KmsMenuStockStatus } from '@/types/kms-menu';
@@ -160,7 +169,12 @@ export function AddMenuItemModal({
 
   return (
     <Modal
-      title={editing ? 'Edit Menu Item' : 'Add Menu Item'}
+      title={
+        <span>
+          {editing ? <EditOutlined aria-hidden="true" /> : <PlusOutlined aria-hidden="true" />}{' '}
+          {editing ? 'Edit Menu Item' : 'Add Menu Item'}
+        </span>
+      }
       open={open}
       width={1040}
       footer={null}
@@ -302,6 +316,7 @@ export function AddMenuItemModal({
               <Input
                 id="kms-item-image"
                 type="url"
+                prefix={<LinkOutlined aria-hidden="true" />}
                 value={draft.imageUrl}
                 disabled={submitting}
                 onChange={(event) => setField('imageUrl', event.target.value)}
@@ -309,7 +324,9 @@ export function AddMenuItemModal({
               />
             </div>
           </div>
-          <h3 className={styles.sectionTitle}>Allergen tags</h3>
+          <h3 className={styles.sectionTitle}>
+            <ExclamationCircleOutlined aria-hidden="true" /> Allergen tags
+          </h3>
           <div role="group" aria-label="Allergen tags" className={styles.tagChoices}>
             {allergens.length ? (
               allergens.map((tag) => (
@@ -328,7 +345,9 @@ export function AddMenuItemModal({
               <span>No allergen options loaded.</span>
             )}
           </div>
-          <h3 className={styles.sectionTitle}>Dietary labels</h3>
+          <h3 className={styles.sectionTitle}>
+            <CheckCircleOutlined aria-hidden="true" /> Dietary labels
+          </h3>
           <div role="group" aria-label="Dietary labels" className={styles.tagChoices}>
             {dietaryLabels.length ? (
               dietaryLabels.map((tag) => (
@@ -348,10 +367,20 @@ export function AddMenuItemModal({
             )}
           </div>
           <div className={styles.actions}>
-            <Button onClick={onCancel} disabled={submitting}>
+            <Button
+              icon={<CloseOutlined aria-hidden="true" />}
+              onClick={onCancel}
+              disabled={submitting}
+            >
               Cancel
             </Button>
-            <Button type="primary" htmlType="submit" loading={submitting} disabled={!canSubmit}>
+            <Button
+              type="primary"
+              icon={<SaveOutlined aria-hidden="true" />}
+              htmlType="submit"
+              loading={submitting}
+              disabled={!canSubmit}
+            >
               {editing ? 'Save Changes' : 'Save Menu Item'}
             </Button>
           </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { Alert, Button, Modal } from 'antd';
+import { CheckOutlined, StopOutlined } from '@ant-design/icons';
 import { useRef, useState } from 'react';
 
 import { KMS_MENU_STOCK_STATUSES, type KmsMenuStockStatus } from '@/types/kms-menu';
@@ -110,6 +111,7 @@ export function MenuStockActions({ item, enabled, onUpdate, onReload }: MenuStoc
           disabled={!canApply}
           onClick={() => void save(selected)}
           aria-label={`Apply stock for ${item.name}`}
+          icon={<CheckOutlined aria-hidden="true" />}
         >
           Apply
         </Button>
@@ -125,6 +127,7 @@ export function MenuStockActions({ item, enabled, onUpdate, onReload }: MenuStoc
         }
         onClick={() => setConfirmDisable(true)}
         aria-label={`Remove ${item.name} safely`}
+        icon={<StopOutlined aria-hidden="true" />}
       >
         Remove
       </Button>
@@ -142,7 +145,7 @@ export function MenuStockActions({ item, enabled, onUpdate, onReload }: MenuStoc
         okButtonProps={{ danger: true, loading: busy }}
         cancelButtonProps={{ disabled: busy }}
         closable={!busy}
-        maskClosable={!busy}
+        mask={{ closable: !busy }}
       >
         <p>
           This preserves the item and any existing order history. The item will be marked
