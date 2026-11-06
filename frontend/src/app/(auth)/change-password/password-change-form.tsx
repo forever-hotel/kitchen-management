@@ -1,7 +1,10 @@
 'use client';
 
-import { Alert, Button, Card, Form, Input, Typography } from 'antd';
+import { Alert, Button, Form, Input } from 'antd';
 import { useState } from 'react';
+
+// Reuse the approved DDP-235 login design without changing the login page.
+import styles from '../login/login.module.css';
 
 interface PasswordFormValues {
   currentPassword: string;
@@ -77,138 +80,142 @@ export default function PasswordChangeForm({ username }: PasswordChangeFormProps
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-4 sm:p-8">
-      <section className="w-full max-w-md">
-        <div
-          className="mb-6 rounded-xl p-6 text-center"
-          style={{
-            background: 'var(--kms-header)',
-            color: 'var(--kms-header-foreground)',
-          }}
-        >
-          <Typography.Title
-            level={1}
-            style={{
-              color: 'inherit',
-              marginBottom: 4,
-            }}
-          >
-            Forever Hotel
-          </Typography.Title>
-
-          <Typography.Text style={{ color: 'inherit' }}>Kitchen Management</Typography.Text>
+    <main className={styles.page}>
+      <section className={styles.card} aria-labelledby="change-password-heading">
+        <div className={styles.brand}>
+          <div className={styles.brandMark} aria-hidden="true">
+            FH
+          </div>
+          <div className={styles.brandCopy}>
+            <p className={styles.brandName}>Forever Hotel</p>
+            <p className={styles.brandCaption}>Kitchen Operations</p>
+          </div>
+          <span className={styles.staffLabel}>STAFF PORTAL</span>
         </div>
 
-        <Card
-          style={{
-            borderColor: 'var(--kms-border)',
-          }}
+        <div className={styles.intro}>
+          <h1 id="change-password-heading" className={styles.heading}>
+            Change Temporary Password
+          </h1>
+          <p className={styles.description}>
+            Welcome, {username}. Set a new password to access Kitchen Management.
+          </p>
+        </div>
+
+        {error && (
+          <Alert type="error" title={error} showIcon role="alert" className={styles.alert} />
+        )}
+
+        <Form<PasswordFormValues>
+          className={styles.form}
+          form={form}
+          name="kms-first-login-password"
+          layout="vertical"
+          requiredMark={false}
+          onFinish={handleSubmit}
         >
-          <Typography.Title level={2}>Change Temporary Password</Typography.Title>
-
-          <Typography.Paragraph type="secondary">
-            Welcome, {username}. You must change your temporary password before accessing Kitchen
-            Management.
-          </Typography.Paragraph>
-
-          {error && <Alert type="error" title={error} showIcon role="alert" className="mb-5" />}
-
-          <Form<PasswordFormValues>
-            form={form}
-            name="kms-first-login-password"
-            layout="vertical"
-            requiredMark={false}
-            onFinish={handleSubmit}
+          <Form.Item
+            className={styles.field}
+            name="currentPassword"
+            label="Current Password"
+            rules={[
+              {
+                required: true,
+                message: 'Enter your current password',
+              },
+            ]}
           >
-            <Form.Item
-              name="currentPassword"
-              label="Current Password"
-              rules={[
-                {
-                  required: true,
-                  message: 'Enter your current password',
+            <Input.Password
+              className={styles.input}
+              size="middle"
+              autoComplete="current-password"
+              maxLength={1024}
+              disabled={submitting}
+            />
+          </Form.Item>
+
+          <Form.Item
+            className={styles.field}
+            name="newPassword"
+            label="New Password"
+            dependencies={['currentPassword']}
+            rules={[
+              {
+                required: true,
+                message: 'Enter a new password',
+              },
+              {
+                min: 12,
+                message: 'Use at least 12 characters',
+              },
+              {
+                validator: async (_, value: string | undefined) => {
+                  if (value && value === form.getFieldValue('currentPassword')) {
+                    throw new Error('New password must differ from current password');
+                  }
                 },
-              ]}
+              },
+            ]}
+          >
+            <Input.Password
+              className={styles.input}
+              size="middle"
+              autoComplete="new-password"
+              maxLength={1024}
+              disabled={submitting}
+            />
+          </Form.Item>
+
+          <Form.Item
+            className={styles.field}
+            name="confirmPassword"
+            label="Confirm New Password"
+            dependencies={['newPassword']}
+            rules={[
+              {
+                required: true,
+                message: 'Confirm your new password',
+              },
+              ({ getFieldValue }) => ({
+                validator(_, value: string | undefined) {
+                  if (!value || getFieldValue('newPassword') === value) {
+                    return Promise.resolve();
+                  }
+
+                  return Promise.reject(new Error('Passwords do not match'));
+                },
+              }),
+            ]}
+          >
+            <Input.Password
+              className={styles.input}
+              size="middle"
+              autoComplete="new-password"
+              maxLength={1024}
+              disabled={submitting}
+            />
+          </Form.Item>
+
+          <Form.Item className={styles.submitField}>
+            <Button
+              className={styles.submitButton}
+              type="primary"
+              htmlType="submit"
+              size="middle"
+              loading={submitting}
+              block
             >
-              <Input.Password
-                size="large"
-                autoComplete="current-password"
-                maxLength={1024}
-                disabled={submitting}
-              />
-            </Form.Item>
+              Update Password
+            </Button>
+          </Form.Item>
+        </Form>
 
-            <Form.Item
-              name="newPassword"
-              label="New Password"
-              dependencies={['currentPassword']}
-              rules={[
-                {
-                  required: true,
-                  message: 'Enter a new password',
-                },
-                {
-                  min: 12,
-                  message: 'Use at least 12 characters',
-                },
-                {
-                  validator: async (_, value: string | undefined) => {
-                    if (value && value === form.getFieldValue('currentPassword')) {
-                      throw new Error('New password must differ from current password');
-                    }
-                  },
-                },
-              ]}
-            >
-              <Input.Password
-                size="large"
-                autoComplete="new-password"
-                maxLength={1024}
-                disabled={submitting}
-              />
-            </Form.Item>
-
-            <Form.Item
-              name="confirmPassword"
-              label="Confirm New Password"
-              dependencies={['newPassword']}
-              rules={[
-                {
-                  required: true,
-                  message: 'Confirm your new password',
-                },
-                ({ getFieldValue }) => ({
-                  validator(_, value: string | undefined) {
-                    if (!value || getFieldValue('newPassword') === value) {
-                      return Promise.resolve();
-                    }
-
-                    return Promise.reject(new Error('Passwords do not match'));
-                  },
-                }),
-              ]}
-            >
-              <Input.Password
-                size="large"
-                autoComplete="new-password"
-                maxLength={1024}
-                disabled={submitting}
-              />
-            </Form.Item>
-
-            <Form.Item className="mb-0">
-              <Button type="primary" htmlType="submit" size="large" loading={submitting} block>
-                Update Password
-              </Button>
-            </Form.Item>
-          </Form>
-
-          <Typography.Paragraph type="secondary" className="mt-5 mb-0 text-center">
-            This step is required only when your account has a temporary password or has been reset
-            by hotel management.
-          </Typography.Paragraph>
-        </Card>
+        <p className={styles.helpText}>
+          This step is required only for temporary or reset passwords.
+        </p>
       </section>
+
+      <p className={styles.pageFooter}>Forever Hotel · Authorized staff access</p>
     </main>
   );
 }

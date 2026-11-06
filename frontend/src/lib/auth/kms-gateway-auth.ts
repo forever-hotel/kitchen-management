@@ -85,7 +85,7 @@ export async function loginKmsStaff(
     subsystem: 'kms',
   };
 
-  const response = await apiRequest<unknown>('/auth/login', {
+  const response = await apiRequest<unknown>('/kms/auth/login', {
     method: 'POST',
     body: JSON.stringify(request),
   });
@@ -100,7 +100,7 @@ export async function loginKmsStaff(
  * trusting the encrypted browser cookie alone.
  */
 export async function validateKmsGatewaySession(accessToken: string): Promise<KmsStaffSession> {
-  const response = await apiRequest<unknown>('/auth/session', {
+  const response = await apiRequest<unknown>('/kms/auth/session', {
     method: 'GET',
     headers: bearerHeaders(accessToken),
   });
@@ -118,7 +118,7 @@ export async function validateKmsGatewaySession(accessToken: string): Promise<Km
  * Revoke an authenticated staff session at the Gateway.
  */
 export async function logoutKmsStaff(accessToken: string): Promise<void> {
-  const response = await apiRequest<unknown>('/auth/logout', {
+  const response = await apiRequest<unknown>('/kms/auth/logout', {
     method: 'POST',
     headers: bearerHeaders(accessToken),
   });
@@ -147,7 +147,7 @@ export async function changeKmsStaffPassword(
     newPassword,
   };
 
-  const response = await apiRequest<unknown>('/auth/change-password', {
+  const response = await apiRequest<unknown>('/kms/auth/change-password', {
     method: 'POST',
     headers: bearerHeaders(accessToken),
     body: JSON.stringify(request),

@@ -36,7 +36,7 @@ describe('KMS Gateway authentication integration', () => {
 
     const result = await loginKmsStaff('chef.manager', 'test-password');
 
-    expect(mockedRequest).toHaveBeenCalledWith('/auth/login', {
+    expect(mockedRequest).toHaveBeenCalledWith('/kms/auth/login', {
       method: 'POST',
       body: JSON.stringify({
         username: 'chef.manager',
@@ -89,7 +89,7 @@ describe('KMS Gateway authentication integration', () => {
 
     const result = await validateKmsGatewaySession('header.payload.signature');
 
-    expect(mockedRequest).toHaveBeenCalledWith('/auth/session', {
+    expect(mockedRequest).toHaveBeenCalledWith('/kms/auth/session', {
       method: 'GET',
       headers: {
         Authorization: 'Bearer header.payload.signature',
@@ -127,7 +127,7 @@ describe('KMS Gateway authentication integration', () => {
 
     await logoutKmsStaff('header.payload.signature');
 
-    expect(mockedRequest).toHaveBeenCalledWith('/auth/logout', {
+    expect(mockedRequest).toHaveBeenCalledWith('/kms/auth/logout', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer header.payload.signature',
@@ -148,7 +148,7 @@ describe('KMS Gateway authentication integration', () => {
       'new-password',
     );
 
-    expect(mockedRequest).toHaveBeenCalledWith('/auth/change-password', {
+    expect(mockedRequest).toHaveBeenCalledWith('/kms/auth/change-password', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer header.payload.signature',

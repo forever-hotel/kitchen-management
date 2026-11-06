@@ -1,7 +1,9 @@
 'use client';
 
-import { Alert, Button, Card, Form, Input, Typography } from 'antd';
+import { Alert, Button, Form, Input } from 'antd';
 import { useState } from 'react';
+
+import styles from './login.module.css';
 
 interface LoginFormValues {
   username: string;
@@ -72,100 +74,100 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-4 sm:p-8">
-      <section className="w-full max-w-md" aria-labelledby="login-heading">
-        <div
-          className="mb-6 rounded-xl p-6 text-center"
-          style={{
-            background: 'var(--kms-header)',
-            color: 'var(--kms-header-foreground)',
-          }}
-        >
-          <Typography.Title
-            level={1}
-            style={{
-              color: 'inherit',
-              marginBottom: 4,
-            }}
-          >
-            Forever Hotel
-          </Typography.Title>
-
-          <Typography.Text style={{ color: 'inherit' }}>Kitchen Operations</Typography.Text>
+    <main className={styles.page}>
+      <section className={styles.card} aria-labelledby="login-heading">
+        <div className={styles.brand}>
+          <div className={styles.brandMark} aria-hidden="true">
+            FH
+          </div>
+          <div className={styles.brandCopy}>
+            <p className={styles.brandName}>Forever Hotel</p>
+            <p className={styles.brandCaption}>Kitchen Operations</p>
+          </div>
+          <span className={styles.staffLabel}>STAFF PORTAL</span>
         </div>
 
-        <Card
-          style={{
-            borderColor: 'var(--kms-border)',
-          }}
-        >
-          <Typography.Title id="login-heading" level={2}>
+        <div className={styles.intro}>
+          <h1 id="login-heading" className={styles.heading}>
             Kitchen Management Login
-          </Typography.Title>
+          </h1>
+          <p className={styles.description}>Welcome back. Sign in to your workspace.</p>
+        </div>
 
-          <Typography.Paragraph type="secondary">
-            Sign in with your authorized kitchen staff account.
-          </Typography.Paragraph>
+        {error && (
+          <Alert type="error" title={error} showIcon role="alert" className={styles.alert} />
+        )}
 
-          {error && <Alert type="error" title={error} showIcon role="alert" className="mb-5" />}
-
-          <Form<LoginFormValues>
-            name="kms-staff-login"
-            layout="vertical"
-            requiredMark={false}
-            onFinish={handleSignIn}
-            autoComplete="on"
+        <Form<LoginFormValues>
+          className={styles.form}
+          name="kms-staff-login"
+          layout="vertical"
+          requiredMark={false}
+          onFinish={handleSignIn}
+          autoComplete="on"
+        >
+          <Form.Item
+            className={styles.field}
+            name="username"
+            label="Username"
+            rules={[
+              {
+                required: true,
+                whitespace: true,
+                message: 'Enter your username',
+              },
+            ]}
           >
-            <Form.Item
-              name="username"
-              label="Username"
-              rules={[
-                {
-                  required: true,
-                  whitespace: true,
-                  message: 'Enter your username',
-                },
-              ]}
+            <Input
+              className={styles.input}
+              size="middle"
+              placeholder="Enter username"
+              autoComplete="username"
+              maxLength={100}
+              disabled={submitting}
+            />
+          </Form.Item>
+
+          <Form.Item
+            className={styles.field}
+            name="password"
+            label="Password"
+            rules={[
+              {
+                required: true,
+                message: 'Enter your password',
+              },
+            ]}
+          >
+            <Input.Password
+              className={styles.input}
+              size="middle"
+              placeholder="Enter password"
+              autoComplete="current-password"
+              disabled={submitting}
+            />
+          </Form.Item>
+
+          <Form.Item className={styles.submitField}>
+            <Button
+              className={styles.submitButton}
+              type="primary"
+              htmlType="submit"
+              size="middle"
+              block
+              loading={submitting}
             >
-              <Input
-                size="large"
-                placeholder="Enter username"
-                autoComplete="username"
-                maxLength={100}
-                disabled={submitting}
-              />
-            </Form.Item>
+              Sign in
+            </Button>
+          </Form.Item>
+        </Form>
 
-            <Form.Item
-              name="password"
-              label="Password"
-              rules={[
-                {
-                  required: true,
-                  message: 'Enter your password',
-                },
-              ]}
-            >
-              <Input.Password
-                size="large"
-                placeholder="Enter password"
-                autoComplete="current-password"
-                disabled={submitting}
-              />
-            </Form.Item>
-
-            <Form.Item className="mb-0">
-              <Button type="primary" htmlType="submit" size="large" block loading={submitting}>
-                Sign in
-              </Button>
-            </Form.Item>
-          </Form>
-
-          <Typography.Paragraph type="secondary" className="mt-5 mb-0 text-center">
-            First-time users may be required to change their temporary password.
-          </Typography.Paragraph>
-        </Card>
+        <p className={styles.helpText}>
+          First-time staff may need to change their temporary password.
+        </p>
       </section>
+
+      <p className={styles.pageFooter}>Forever Hotel · Authorized staff access</p>
     </main>
   );
 }
