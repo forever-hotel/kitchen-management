@@ -1,4 +1,3 @@
-
 import { OrderingWindowsScreen } from '@/features/ordering-windows';
 import { MENU_PREVIEW_CATEGORIES } from '@/features/menu/data/menu-preview.data';
 
@@ -17,18 +16,12 @@ export default async function TimeWindowsPage() {
     return (
       <section aria-labelledby="time-windows-heading">
         <h2 id="time-windows-heading">Ordering Time Windows</h2>
-        <p>
-          Authenticated ordering-window integration is not
-          enabled on this route yet.
-        </p>
+        <p>Authenticated ordering-window integration is not enabled on this route yet.</p>
       </section>
     );
   }
 
   return (
-    <OrderingWindowsScreen
-      windows={MENU_PREVIEW_CATEGORIES}
-      categories={MENU_PREVIEW_CATEGORIES}
-    />
+    <OrderingWindowsScreen windows={MENU_PREVIEW_CATEGORIES} categories={MENU_PREVIEW_CATEGORIES} />
   );
 }

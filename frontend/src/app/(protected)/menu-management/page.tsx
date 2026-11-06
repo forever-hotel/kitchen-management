@@ -1,4 +1,3 @@
-
 import { MenuManagementScreen } from '@/features/menu';
 import {
   MENU_PREVIEW_CATEGORIES,
@@ -20,10 +19,7 @@ export default async function MenuManagementPage() {
     return (
       <section aria-labelledby="menu-management-heading">
         <h2 id="menu-management-heading">Menu Management</h2>
-        <p>
-          Authenticated menu data integration is not enabled
-          on this route yet.
-        </p>
+        <p>Authenticated menu data integration is not enabled on this route yet.</p>
       </section>
     );
   }

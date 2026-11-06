@@ -1,4 +1,3 @@
-
 import { render, screen } from '@testing-library/react';
 
 jest.mock('../lib/auth/kms-workspace-access', () => ({
@@ -30,13 +29,9 @@ describe('KMS route foundation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    jest
-      .mocked(requireKmsWorkspaceSession)
-      .mockResolvedValue(managerSession);
+    jest.mocked(requireKmsWorkspaceSession).mockResolvedValue(managerSession);
 
-    jest
-      .mocked(requireKmsManagerSession)
-      .mockResolvedValue(managerSession);
+    jest.mocked(requireKmsManagerSession).mockResolvedValue(managerSession);
   });
 
   it('renders the public login form', () => {
@@ -68,11 +63,7 @@ describe('KMS route foundation', () => {
 
     expect(requireKmsManagerSession).toHaveBeenCalledTimes(1);
 
-    render(
-      <AppProviders>
-        {page}
-      </AppProviders>,
-    );
+    render(<AppProviders>{page}</AppProviders>);
 
     expect(
       screen.getByRole('heading', {
@@ -80,14 +71,10 @@ describe('KMS route foundation', () => {
       }),
     ).toBeInTheDocument();
 
-    expect(
-      screen.getByText('Chicken Fried Rice'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Chicken Fried Rice')).toBeInTheDocument();
 
     expect(
-      screen.getByText(
-        'Fixture preview — sample data, not live menu records.',
-      ),
+      screen.getByText('Fixture preview — sample data, not live menu records.'),
     ).toBeInTheDocument();
   });
 
@@ -96,11 +83,7 @@ describe('KMS route foundation', () => {
 
     expect(requireKmsManagerSession).toHaveBeenCalledTimes(1);
 
-    render(
-      <AppProviders>
-        {page}
-      </AppProviders>,
-    );
+    render(<AppProviders>{page}</AppProviders>);
 
     expect(
       screen.getByRole('heading', {
@@ -108,9 +91,7 @@ describe('KMS route foundation', () => {
       }),
     ).toBeInTheDocument();
 
-    expect(
-      screen.getByText('Ordering windows: 4.'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Ordering windows: 4.')).toBeInTheDocument();
 
     expect(
       screen.getByRole('article', {
