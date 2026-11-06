@@ -1,0 +1,50 @@
+.controls {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+  min-width: 145px;
+}
+
+.inputLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: #5a5650;
+}
+
+.quickRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+
+.quickRow select {
+  min-width: 0;
+  max-width: 180px;
+  border: 1px solid #cad5df;
+  border-radius: 6px;
+  padding: 6px;
+  background: #fff;
+  color: #12263a;
+  font: inherit;
+  font-size: 12px;
+}
+
+.quickRow select:focus-visible {
+  outline: 2px solid #1a3c5e;
+  outline-offset: 1px;
+}
+
+.quickRow select:disabled {
+  background: #f5f3ef;
+  opacity: 0.75;
+}
+
+.note {
+  font-size: 11px;
+  color: #5a5650;
+}
+
+.error {
+  max-width: 245px;
+}

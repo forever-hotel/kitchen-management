@@ -19,6 +19,7 @@ import {
 
 import { AddCategoryModal } from './add-category-modal';
 import { AddMenuItemModal } from './add-menu-item-modal';
+import { MenuStockActions } from './menu-stock-actions';
 import styles from './menu-management-screen.module.css';
 
 const stockTabs: readonly { value: MenuStockFilter; label: string }[] = [
@@ -52,6 +53,7 @@ export function MenuManagementScreen({
   onCreateMenuItem,
   onUpdateMenuItem,
   onReloadMenuItems,
+  onChangeStockStatus,
   allergenOptions = [],
   dietaryLabelOptions = [],
   enableMenuModalPreview = false,
@@ -427,6 +429,15 @@ export function MenuManagementScreen({
                         >
                           {stockLabels[item.stockStatus]}
                         </Tag>
+                        <MenuStockActions
+                          key={`${item.menuItemId}-${item.stockStatus}`}
+                          item={item}
+                          enabled={Boolean(
+                            dataMode === 'api' && onChangeStockStatus && onReloadMenuItems,
+                          )}
+                          onUpdate={onChangeStockStatus}
+                          onReload={reloadMenuItems}
+                        />
                       </td>
                       <td data-label="Actions">
                         <Button

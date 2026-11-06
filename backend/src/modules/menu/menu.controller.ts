@@ -1,6 +1,8 @@
 import {
   Body,
+  ConflictException,
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
@@ -97,5 +99,25 @@ export class MenuController {
     @Body() body: unknown,
   ): Promise<MenuItemResponseDto> {
     return this.menu.updateItem(menuItemId, body);
+  }
+
+  /** R-10: every hard delete is forbidden until retention policy and FK safety are approved. */
+  @Delete(':menuItemId')
+  @ApiOperation({
+    summary: 'Permanent deletion is blocked; use TEMPORARILY_DISABLED instead',
+  })
+  @ApiConflictResponse({
+    description:
+      'Permanent deletion is not approved; historical order references must be preserved.',
+  })
+  @ApiNotFoundResponse({ description: 'Menu item does not exist.' })
+  async deleteItem(
+    @Param('menuItemId', new ParseUUIDPipe()) menuItemId: string,
+  ): Promise<never> {
+    // Force 404 for unknown identifiers. No repository delete and no cascade are reachable.
+    await this.menu.getItem(menuItemId);
+    throw new ConflictException(
+      'Permanent menu item deletion is not approved. Set stockStatus to TEMPORARILY_DISABLED to preserve existing orders.',
+    );
   }
 }
