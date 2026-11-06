@@ -1,3 +1,4 @@
+
 import type { PropsWithChildren } from 'react';
 
 import { KmsShell } from '../../components/layout/kms-shell';
@@ -7,12 +8,12 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
- * Shared authenticated KMS workspace shell.
- *
- * The live Gateway role controls navigation visibility.
- * Individual pages independently verify authorization.
+ * Authenticated KMS workspace.
+ * Navigation uses the role validated by the API Gateway.
  */
-export default async function WorkspaceLayout({ children }: PropsWithChildren) {
+export default async function WorkspaceLayout({
+  children,
+}: PropsWithChildren) {
   const session = await requireKmsWorkspaceSession();
 
   return <KmsShell role={session.role}>{children}</KmsShell>;

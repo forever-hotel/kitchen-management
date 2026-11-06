@@ -173,3 +173,11 @@ textarea:focus-visible {
     margin-left: 0;
   }
 }
+
+/* Clearly distinguish development-only navigation from an authenticated role. */
+.kms-shell__preview-label {
+  color: #e6b23d;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}

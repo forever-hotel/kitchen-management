@@ -1,3 +1,4 @@
+
 import { render, screen } from '@testing-library/react';
 
 jest.mock('../lib/auth/kms-workspace-access', () => ({
@@ -9,6 +10,8 @@ import {
   requireKmsManagerSession,
   requireKmsWorkspaceSession,
 } from '../lib/auth/kms-workspace-access';
+
+import { AppProviders } from '@/providers/app-providers';
 
 import LoginPage from './(auth)/login/page';
 import MenuManagementPage from './(protected)/menu-management/page';
@@ -27,9 +30,13 @@ describe('KMS route foundation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    jest.mocked(requireKmsWorkspaceSession).mockResolvedValue(managerSession);
+    jest
+      .mocked(requireKmsWorkspaceSession)
+      .mockResolvedValue(managerSession);
 
-    jest.mocked(requireKmsManagerSession).mockResolvedValue(managerSession);
+    jest
+      .mocked(requireKmsManagerSession)
+      .mockResolvedValue(managerSession);
   });
 
   it('renders the public login form', () => {
@@ -42,10 +49,12 @@ describe('KMS route foundation', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders the protected Order Queue page', async () => {
-    render(await OrderQueuePage());
+  it('renders Order Queue after staff authorization', async () => {
+    const page = await OrderQueuePage();
 
     expect(requireKmsWorkspaceSession).toHaveBeenCalledTimes(1);
+
+    render(page);
 
     expect(
       screen.getByRole('heading', {
@@ -55,25 +64,63 @@ describe('KMS route foundation', () => {
   });
 
   it('renders Menu Management after manager authorization', async () => {
-    render(await MenuManagementPage());
+    const page = await MenuManagementPage();
 
     expect(requireKmsManagerSession).toHaveBeenCalledTimes(1);
 
+    render(
+      <AppProviders>
+        {page}
+      </AppProviders>,
+    );
+
     expect(
       screen.getByRole('heading', {
-        name: 'Menu Management',
+        name: 'Lunch Menu',
       }),
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText('Chicken Fried Rice'),
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText(
+        'Fixture preview — sample data, not live menu records.',
+      ),
     ).toBeInTheDocument();
   });
 
   it('renders Time Windows after manager authorization', async () => {
-    render(await TimeWindowsPage());
+    const page = await TimeWindowsPage();
 
     expect(requireKmsManagerSession).toHaveBeenCalledTimes(1);
+
+    render(
+      <AppProviders>
+        {page}
+      </AppProviders>,
+    );
 
     expect(
       screen.getByRole('heading', {
         name: 'Ordering Time Windows',
+      }),
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText('Ordering windows: 4.'),
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByRole('article', {
+        name: 'Breakfast window',
+      }),
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByRole('article', {
+        name: 'Lunch window',
       }),
     ).toBeInTheDocument();
   });
