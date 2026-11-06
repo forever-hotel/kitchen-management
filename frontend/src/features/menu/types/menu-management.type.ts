@@ -1,4 +1,4 @@
-import type { KmsMealCategoryData, KmsMenuItemData } from '@/types/kms-menu';
+import type { KmsMealCategoryData, KmsMenuItemData, KmsMenuStockStatus } from '@/types/kms-menu';
 
 import type { CreateCategoryInput } from '../utils/create-category.validation';
 import type { MenuItemEditPayload } from '../utils/menu-item-edit.validation';
@@ -42,6 +42,11 @@ export interface MenuManagementScreenProps {
   onCreateMenuItem?: (payload: MenuItemWritePayload) => Promise<unknown>;
   onUpdateMenuItem?: (menuItemId: string, payload: MenuItemEditPayload) => Promise<unknown>;
   onReloadMenuItems?: () => Promise<readonly MenuManagementItem[]>;
+  /** R-10: must use authenticated server PATCH and authoritative server reload. */
+  onChangeStockStatus?: (
+    menuItemId: string,
+    payload: { stockStatus: KmsMenuStockStatus },
+  ) => Promise<unknown>;
   allergenOptions?: readonly MenuAllergenOption[];
   dietaryLabelOptions?: readonly MenuDietaryLabelOption[];
   /** A display-only form in a local fixture preview. Never enables saving. */
