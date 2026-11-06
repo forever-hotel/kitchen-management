@@ -5,7 +5,11 @@ import { useMemo, useRef, useState } from 'react';
 
 import type { KmsMealCategoryData } from '@/types/kms-menu';
 
-import type { MenuManagementScreenProps, MenuStockFilter } from '../types/menu-management.type';
+import type {
+  MenuManagementItem,
+  MenuManagementScreenProps,
+  MenuStockFilter,
+} from '../types/menu-management.type';
 import {
   filterMenuItems,
   formatCategoryTime,
@@ -14,6 +18,7 @@ import {
 } from '../utils/menu-management.util';
 
 import { AddCategoryModal } from './add-category-modal';
+import { AddMenuItemModal } from './add-menu-item-modal';
 import styles from './menu-management-screen.module.css';
 
 const stockTabs: readonly { value: MenuStockFilter; label: string }[] = [
@@ -44,11 +49,27 @@ export function MenuManagementScreen({
   onAddMenuItem,
   onEditItem,
   onEditWindow,
+  onCreateMenuItem,
+  onUpdateMenuItem,
+  onReloadMenuItems,
+  allergenOptions = [],
+  dietaryLabelOptions = [],
+  enableMenuModalPreview = false,
 }: MenuManagementScreenProps) {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [stockFilter, setStockFilter] = useState<MenuStockFilter>('ALL');
   const [modalOpen, setModalOpen] = useState(false);
+  const [menuModal, setMenuModal] = useState<
+    { mode: 'create'; categoryId: string } | { mode: 'edit'; item: MenuManagementItem } | null
+  >(null);
+  const [reloadedItems, setReloadedItems] = useState<{
+    source: readonly MenuManagementItem[];
+    values: readonly MenuManagementItem[];
+  } | null>(null);
+  const [menuReloadError, setMenuReloadError] = useState<string | null>(null);
+  const [menuSavedNotice, setMenuSavedNotice] = useState(false);
+  const [reloadingMenu, setReloadingMenu] = useState(false);
   const [refreshedCategories, setRefreshedCategories] = useState<{
     source: readonly KmsMealCategoryData[];
     values: readonly KmsMealCategoryData[];
@@ -82,6 +103,27 @@ export function MenuManagementScreen({
     }
   };
 
+  const displayItems = reloadedItems?.source === items ? reloadedItems.values : items;
+  const previewMode =
+    enableMenuModalPreview && dataMode === 'fixtures' && process.env.NODE_ENV !== 'production';
+  const canCreateMenu = Boolean(onCreateMenuItem && onReloadMenuItems);
+  const canUpdateMenu = Boolean(onUpdateMenuItem && onReloadMenuItems);
+
+  const reloadMenuItems = async () => {
+    if (!onReloadMenuItems || reloadingMenu) return;
+    setReloadingMenu(true);
+    setMenuReloadError(null);
+    try {
+      const fresh = await onReloadMenuItems();
+      setReloadedItems({ source: items, values: fresh });
+      setMenuSavedNotice(true);
+    } catch {
+      setMenuReloadError('Menu item saved, but the menu list could not be reloaded.');
+    } finally {
+      setReloadingMenu(false);
+    }
+  };
+
   // Match the supplied Figma's Lunch-first preview when Lunch exists.
   const fallbackCategory =
     currentCategories.find((category) => category.name.trim().toLowerCase() === 'lunch') ??
@@ -91,16 +133,16 @@ export function MenuManagementScreen({
     fallbackCategory;
 
   const categoryItems = useMemo(
-    () => items.filter((item) => item.categoryId === selectedCategory?.categoryId),
-    [items, selectedCategory?.categoryId],
+    () => displayItems.filter((item) => item.categoryId === selectedCategory?.categoryId),
+    [displayItems, selectedCategory?.categoryId],
   );
   const categoryCounts = useMemo(() => getStockCounts(categoryItems), [categoryItems]);
   const visibleItems = useMemo(
     () =>
       selectedCategory
-        ? filterMenuItems(items, selectedCategory.categoryId, searchQuery, stockFilter)
+        ? filterMenuItems(displayItems, selectedCategory.categoryId, searchQuery, stockFilter)
         : [],
-    [items, selectedCategory, searchQuery, stockFilter],
+    [displayItems, selectedCategory, searchQuery, stockFilter],
   );
 
   const selectCategory = (categoryId: string) => {
@@ -133,7 +175,9 @@ export function MenuManagementScreen({
         </div>
         <div role="group" aria-label="Select meal category" className={styles.categoryList}>
           {currentCategories.map((category) => {
-            const count = items.filter((item) => item.categoryId === category.categoryId).length;
+            const count = displayItems.filter(
+              (item) => item.categoryId === category.categoryId,
+            ).length;
             const isSelected = selectedCategory?.categoryId === category.categoryId;
 
             return (
@@ -161,6 +205,27 @@ export function MenuManagementScreen({
       </aside>
 
       <div className={styles.main}>
+        {menuSavedNotice && !menuReloadError && (
+          <Alert
+            type="success"
+            showIcon
+            title="Menu item saved and list reloaded."
+            closable
+            onClose={() => setMenuSavedNotice(false)}
+          />
+        )}
+        {menuReloadError && (
+          <Alert
+            type="warning"
+            showIcon
+            title={menuReloadError}
+            action={
+              <Button loading={reloadingMenu} onClick={() => void reloadMenuItems()}>
+                Retry menu reload
+              </Button>
+            }
+          />
+        )}
         {creationNotice && !refreshError && (
           <Alert
             type="success"
@@ -217,9 +282,18 @@ export function MenuManagementScreen({
             </Button>
             <Button
               type="primary"
-              disabled={!onAddMenuItem || !selectedCategory}
-              onClick={() => selectedCategory && onAddMenuItem?.(selectedCategory.categoryId)}
-              title={!onAddMenuItem ? 'Menu item creation is planned for a later issue' : undefined}
+              disabled={(!onAddMenuItem && !canCreateMenu && !previewMode) || !selectedCategory}
+              onClick={() => {
+                if (!selectedCategory) return;
+                if (canCreateMenu || previewMode)
+                  setMenuModal({ mode: 'create', categoryId: selectedCategory.categoryId });
+                else onAddMenuItem?.(selectedCategory.categoryId);
+              }}
+              title={
+                !onAddMenuItem && !canCreateMenu && !previewMode
+                  ? 'Menu creation requires authenticated API callbacks'
+                  : undefined
+              }
             >
               + Add Menu Item
             </Button>
@@ -356,8 +430,11 @@ export function MenuManagementScreen({
                       </td>
                       <td data-label="Actions">
                         <Button
-                          disabled={!onEditItem}
-                          onClick={() => onEditItem?.(item)}
+                          disabled={!onEditItem && !canUpdateMenu && !previewMode}
+                          onClick={() => {
+                            if (canUpdateMenu || previewMode) setMenuModal({ mode: 'edit', item });
+                            else onEditItem?.(item);
+                          }}
                           aria-label={`Edit ${item.name}`}
                           title={
                             !onEditItem ? 'Menu editing is planned for a later issue' : undefined
@@ -378,6 +455,34 @@ export function MenuManagementScreen({
           )}
         </div>
       </div>
+      {menuModal && (
+        <AddMenuItemModal
+          key={menuModal.mode === 'create' ? 'new-item' : menuModal.item.menuItemId}
+          open
+          categories={currentCategories}
+          initialCategoryId={menuModal.mode === 'create' ? menuModal.categoryId : undefined}
+          item={menuModal.mode === 'edit' ? menuModal.item : undefined}
+          allergens={allergenOptions}
+          dietaryLabels={dietaryLabelOptions}
+          onCancel={() => setMenuModal(null)}
+          onSave={
+            menuModal.mode === 'create' && canCreateMenu
+              ? async (payload) => {
+                  await onCreateMenuItem?.(payload);
+                }
+              : menuModal.mode === 'edit' && canUpdateMenu
+                ? async (payload) => {
+                    if (menuModal.mode !== 'edit') return;
+                    await onUpdateMenuItem?.(menuModal.item.menuItemId, payload);
+                  }
+                : undefined
+          }
+          onSaved={() => {
+            setMenuModal(null);
+            void reloadMenuItems();
+          }}
+        />
+      )}
       {onCreateCategory && onRefreshCategories && modalOpen && (
         <AddCategoryModal
           open={modalOpen}
