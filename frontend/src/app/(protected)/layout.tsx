@@ -3,11 +3,9 @@ import type { PropsWithChildren } from 'react';
 import { KmsShell } from '@/components/layout/kms-shell';
 
 /**
- * Shared layout for kitchen operational pages.
- *
- * Authentication and server-side route protection
- * will be connected under DDP-235.
+ * The session-backed role and route authorization will be wired under DDP-235.
+ * Local preview links are visible only outside production; they grant no API role.
  */
 export default function WorkspaceLayout({ children }: PropsWithChildren) {
-  return <KmsShell>{children}</KmsShell>;
+  return <KmsShell previewNavigation={process.env.NODE_ENV !== 'production'}>{children}</KmsShell>;
 }

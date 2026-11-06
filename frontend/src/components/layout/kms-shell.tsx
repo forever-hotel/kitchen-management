@@ -10,19 +10,22 @@ const { Header, Content, Footer } = Layout;
 
 interface KmsShellProps extends PropsWithChildren {
   role?: KmsRole | null;
+  /** Development-only links to fixture screens; never grants manager authorization. */
+  previewNavigation?: boolean;
 }
 
+const previewRoutes = [
+  { href: '/menu-management', label: 'Menu Management' },
+  { href: '/time-windows', label: 'Time Windows' },
+] as const;
+
 /**
- * Shared application shell for the KMS.
- *
- * Navigation is based on the authenticated user's role.
- * The real session will be connected in DDP-235.
- *
- * Navigation visibility is not a replacement for
- * server-side authorization.
+ * Shared application shell. Real navigation remains role-based, and production
+ * authorization is independent of the development-only preview navigation.
  */
-export function KmsShell({ children, role = null }: KmsShellProps) {
+export function KmsShell({ children, role = null, previewNavigation = false }: KmsShellProps) {
   const navigationItems = getKmsNavigationItems(role);
+  const showPreviewNavigation = previewNavigation && process.env.NODE_ENV !== 'production';
 
   return (
     <Layout className="kms-shell">
@@ -39,7 +42,7 @@ export function KmsShell({ children, role = null }: KmsShellProps) {
           </Typography.Title>
         </div>
 
-        {navigationItems.length > 0 && (
+        {navigationItems.length > 0 ? (
           <nav aria-label="Kitchen navigation" className="kms-shell__nav">
             <Space size="middle" wrap>
               {navigationItems.map((item) => (
@@ -49,7 +52,18 @@ export function KmsShell({ children, role = null }: KmsShellProps) {
               ))}
             </Space>
           </nav>
-        )}
+        ) : showPreviewNavigation ? (
+          <nav aria-label="Local UI preview navigation" className="kms-shell__nav">
+            <Space size="middle" wrap>
+              <span className="kms-shell__preview-label">LOCAL UI PREVIEW</span>
+              {previewRoutes.map((item) => (
+                <Link key={item.href} href={item.href} className="kms-shell__nav-link">
+                  {item.label}
+                </Link>
+              ))}
+            </Space>
+          </nav>
+        ) : null}
       </Header>
 
       <Content id="main-content" className="kms-shell__content" tabIndex={-1}>
