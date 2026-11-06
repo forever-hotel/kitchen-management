@@ -13,6 +13,12 @@ import type {
   MenuItemWritePayload,
 } from '../utils/menu-item-write.validation';
 import { menuItemDraftToPayload, validateMenuItemDraft } from '../utils/menu-item-write.validation';
+import type { MenuItemEditPayload } from '../utils/menu-item-edit.validation';
+import {
+  buildMenuItemEditPayload,
+  resolveEditAllergens,
+  resolveEditDietaryLabels,
+} from '../utils/menu-item-edit.validation';
 import { GuestMenuPreview } from './guest-menu-preview';
 import styles from './menu-item-modal.module.css';
 
@@ -26,6 +32,8 @@ interface AddMenuItemModalProps {
   onCancel: () => void;
   /** Authenticated BFF callback; absent in read-only development previews. */
   onSave?: (payload: MenuItemWritePayload) => Promise<void>;
+  /** PATCH callback; omitted associations are preserved on the R-07 server. */
+  onUpdate?: (payload: MenuItemEditPayload) => Promise<void>;
   /** Called only once a server write succeeded, so the parent may reload. */
   onSaved: () => void;
 }
@@ -36,27 +44,6 @@ const stockOptions: { value: KmsMenuStockStatus; label: string }[] = [
   { value: 'UNAVAILABLE', label: 'Unavailable' },
   { value: 'TEMPORARILY_DISABLED', label: 'Temporarily Disabled' },
 ];
-
-function resolveAllergenId(
-  tag: { name: string; allergenId?: string },
-  options: readonly MenuAllergenOption[],
-): string | undefined {
-  return options.find(
-    (option) =>
-      option.allergenId === tag.allergenId || option.name.toLowerCase() === tag.name.toLowerCase(),
-  )?.allergenId;
-}
-
-function resolveDietaryId(
-  tag: { name: string; dietaryLabelId?: string },
-  options: readonly MenuDietaryLabelOption[],
-): string | undefined {
-  return options.find(
-    (option) =>
-      option.dietaryLabelId === tag.dietaryLabelId ||
-      option.name.toLowerCase() === tag.name.toLowerCase(),
-  )?.dietaryLabelId;
-}
 
 function initialDraft(
   categories: readonly KmsMealCategoryData[],
@@ -74,12 +61,8 @@ function initialDraft(
     portionLimit: String(item?.portionLimit ?? 5),
     stockStatus: item?.stockStatus ?? 'AVAILABLE',
     imageUrl: item?.imageUrl ?? '',
-    allergenIds: (item?.allergens ?? [])
-      .map((tag) => resolveAllergenId(tag, allergens))
-      .filter((id): id is string => Boolean(id)),
-    dietaryLabelIds: (item?.dietaryLabels ?? [])
-      .map((tag) => resolveDietaryId(tag, dietaryLabels))
-      .filter((id): id is string => Boolean(id)),
+    allergenIds: item ? resolveEditAllergens(item, allergens).ids : [],
+    dietaryLabelIds: item ? resolveEditDietaryLabels(item, dietaryLabels).ids : [],
   };
 }
 
@@ -101,6 +84,12 @@ function saveErrorMessage(error: unknown): string {
         break;
     }
   }
+  if (
+    error instanceof Error &&
+    (error.message === 'No changes to save.' || error.message.startsWith('Reload all existing '))
+  ) {
+    return error.message;
+  }
   return 'Menu item could not be saved. Your form has been preserved; please retry.';
 }
 
@@ -114,6 +103,7 @@ export function AddMenuItemModal({
   dietaryLabels,
   onCancel,
   onSave,
+  onUpdate,
   onSaved,
 }: AddMenuItemModalProps) {
   const [draft, setDraft] = useState<MenuItemDraft>(() =>
@@ -122,11 +112,10 @@ export function AddMenuItemModal({
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const editing = Boolean(item);
-  // Do not silently erase relationships that the server returned without resolvable IDs.
-  const unidentifiedTags = Boolean(
-    item?.allergens?.some((tag) => !resolveAllergenId(tag, allergens)) ||
-    item?.dietaryLabels?.some((tag) => !resolveDietaryId(tag, dietaryLabels)),
-  );
+  const unknownAllergens = item ? resolveEditAllergens(item, allergens).unresolved : [];
+  const unknownDietary = item ? resolveEditDietaryLabels(item, dietaryLabels).unresolved : [];
+  const unidentifiedTags = unknownAllergens.length > 0 || unknownDietary.length > 0;
+  const canSubmit = editing ? Boolean(onUpdate) : Boolean(onSave);
 
   function setField<K extends keyof MenuItemDraft>(field: K, value: MenuItemDraft[K]) {
     setDraft((current) => ({ ...current, [field]: value }));
@@ -144,7 +133,7 @@ export function AddMenuItemModal({
   }
 
   async function submit() {
-    if (!onSave || submitting || unidentifiedTags) return;
+    if (!canSubmit || submitting) return;
     const validation = validateMenuItemDraft(draft, categories, allergens, dietaryLabels);
     if (validation) {
       setErrorMessage(validation);
@@ -153,7 +142,14 @@ export function AddMenuItemModal({
     setErrorMessage(null);
     setSubmitting(true);
     try {
-      await onSave(menuItemDraftToPayload(draft, categories, allergens, dietaryLabels));
+      if (item && onUpdate) {
+        const patch = buildMenuItemEditPayload(item, draft, categories, allergens, dietaryLabels);
+        await onUpdate(patch);
+      } else if (!item && onSave) {
+        await onSave(menuItemDraftToPayload(draft, categories, allergens, dietaryLabels));
+      } else {
+        return;
+      }
       onSaved();
     } catch (cause) {
       setErrorMessage(saveErrorMessage(cause));
@@ -176,7 +172,7 @@ export function AddMenuItemModal({
         if (!submitting) onCancel();
       }}
     >
-      {!onSave && (
+      {!canSubmit && (
         <Alert
           type="info"
           showIcon
@@ -188,7 +184,7 @@ export function AddMenuItemModal({
         <Alert
           type="warning"
           showIcon
-          title="Existing tag IDs are missing from the available options. Refresh tags before editing to avoid losing associations."
+          title="Some existing tags are unavailable. Their server associations will remain unchanged; reload tag options to edit tags."
           style={{ marginBottom: 14 }}
         />
       )}
@@ -320,7 +316,7 @@ export function AddMenuItemModal({
                 <Checkbox
                   key={tag.allergenId}
                   checked={draft.allergenIds.includes(tag.allergenId)}
-                  disabled={submitting}
+                  disabled={submitting || unidentifiedTags}
                   onChange={(event) =>
                     toggleId('allergenIds', tag.allergenId, event.target.checked)
                   }
@@ -339,7 +335,7 @@ export function AddMenuItemModal({
                 <Checkbox
                   key={tag.dietaryLabelId}
                   checked={draft.dietaryLabelIds.includes(tag.dietaryLabelId)}
-                  disabled={submitting}
+                  disabled={submitting || unidentifiedTags}
                   onChange={(event) =>
                     toggleId('dietaryLabelIds', tag.dietaryLabelId, event.target.checked)
                   }
@@ -355,12 +351,7 @@ export function AddMenuItemModal({
             <Button onClick={onCancel} disabled={submitting}>
               Cancel
             </Button>
-            <Button
-              type="primary"
-              htmlType="submit"
-              loading={submitting}
-              disabled={!onSave || unidentifiedTags}
-            >
+            <Button type="primary" htmlType="submit" loading={submitting} disabled={!canSubmit}>
               {editing ? 'Save Changes' : 'Save Menu Item'}
             </Button>
           </div>
@@ -370,6 +361,8 @@ export function AddMenuItemModal({
           categories={categories}
           allergens={allergens}
           dietaryLabels={dietaryLabels}
+          preservedAllergens={unknownAllergens}
+          preservedDietaryLabels={unknownDietary}
         />
       </div>
     </Modal>

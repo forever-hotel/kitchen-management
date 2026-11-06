@@ -470,12 +470,16 @@ export function MenuManagementScreen({
               ? async (payload) => {
                   await onCreateMenuItem?.(payload);
                 }
-              : menuModal.mode === 'edit' && canUpdateMenu
-                ? async (payload) => {
-                    if (menuModal.mode !== 'edit') return;
-                    await onUpdateMenuItem?.(menuModal.item.menuItemId, payload);
-                  }
-                : undefined
+              : undefined
+          }
+          onUpdate={
+            menuModal.mode === 'edit' && canUpdateMenu
+              ? async (patch) => {
+                  if (menuModal.mode !== 'edit') return;
+                  await onUpdateMenuItem?.(menuModal.item.menuItemId, patch);
+                  if (patch.categoryId) setSelectedCategoryId(patch.categoryId);
+                }
+              : undefined
           }
           onSaved={() => {
             setMenuModal(null);
