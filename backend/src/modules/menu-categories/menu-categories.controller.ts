@@ -25,6 +25,8 @@ import {
 import { KmsManagerReadGuard } from '../../common/guards/kms-manager-read.guard.js';
 import { CreateMealCategoryDto } from './dto/create-meal-category.dto.js';
 import { MealCategoryResponseDto } from './dto/meal-category-response.dto.js';
+import { OrderingWindowResponseDto } from './dto/ordering-window-response.dto.js';
+import { UpdateOrderingWindowDto } from './dto/update-ordering-window.dto.js';
 import { UpdateMealCategoryDto } from './dto/update-meal-category.dto.js';
 import { MenuCategoriesService } from './menu-categories.service.js';
 
@@ -48,6 +50,19 @@ export class MenuCategoriesController {
     return this.categories.listCategories();
   }
 
+  @Get(':categoryId/window')
+  @ApiOperation({
+    summary: 'Read saved hotel-local ordering window for a meal category',
+  })
+  @ApiOkResponse({ type: OrderingWindowResponseDto })
+  @ApiBadRequestResponse({ description: 'Malformed category UUID.' })
+  @ApiNotFoundResponse({ description: 'Category does not exist.' })
+  getOrderingWindow(
+    @Param('categoryId', new ParseUUIDPipe()) categoryId: string,
+  ): Promise<OrderingWindowResponseDto> {
+    return this.categories.getOrderingWindow(categoryId);
+  }
+
   @Post()
   @ApiOperation({ summary: 'Create a meal category (manager only)' })
   @ApiBody({ type: CreateMealCategoryDto })
@@ -56,6 +71,26 @@ export class MenuCategoriesController {
   @ApiConflictResponse({ description: 'Category name already exists.' })
   createCategory(@Body() payload: unknown): Promise<MealCategoryResponseDto> {
     return this.categories.createCategory(payload);
+  }
+
+  @Patch(':categoryId/window')
+  @ApiOperation({
+    summary:
+      'Update approved category ordering times (manager only, Asia/Colombo)',
+    description:
+      'Same-day only; start inclusive and cutoff exclusive. Cross-category overlap policy is pending approval.',
+  })
+  @ApiBody({ type: UpdateOrderingWindowDto })
+  @ApiOkResponse({ type: OrderingWindowResponseDto })
+  @ApiBadRequestResponse({
+    description: 'Invalid time, invalid UUID, or unsupported window field.',
+  })
+  @ApiNotFoundResponse({ description: 'Category does not exist.' })
+  updateOrderingWindow(
+    @Param('categoryId', new ParseUUIDPipe()) categoryId: string,
+    @Body() payload: unknown,
+  ): Promise<OrderingWindowResponseDto> {
+    return this.categories.updateOrderingWindow(categoryId, payload);
   }
 
   @Patch(':categoryId')
