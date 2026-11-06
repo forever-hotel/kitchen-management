@@ -1,6 +1,7 @@
 import type { KmsMealCategoryData, KmsMenuItemData } from '@/types/kms-menu';
 
 import type { CreateCategoryInput } from '../utils/create-category.validation';
+import type { MenuItemEditPayload } from '../utils/menu-item-edit.validation';
 import type {
   MenuAllergenOption,
   MenuDietaryLabelOption,
@@ -39,7 +40,7 @@ export interface MenuManagementScreenProps {
   onEditWindow?: (categoryId: string) => void;
   /** Both write AND subsequent reload must be connected to trusted authenticated BFF endpoints. */
   onCreateMenuItem?: (payload: MenuItemWritePayload) => Promise<unknown>;
-  onUpdateMenuItem?: (menuItemId: string, payload: MenuItemWritePayload) => Promise<unknown>;
+  onUpdateMenuItem?: (menuItemId: string, payload: MenuItemEditPayload) => Promise<unknown>;
   onReloadMenuItems?: () => Promise<readonly MenuManagementItem[]>;
   allergenOptions?: readonly MenuAllergenOption[];
   dietaryLabelOptions?: readonly MenuDietaryLabelOption[];

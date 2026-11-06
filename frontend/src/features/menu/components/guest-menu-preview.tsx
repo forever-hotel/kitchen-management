@@ -18,6 +18,8 @@ interface GuestMenuPreviewProps {
   categories: readonly KmsMealCategoryData[];
   allergens: readonly MenuAllergenOption[];
   dietaryLabels: readonly MenuDietaryLabelOption[];
+  preservedAllergens?: readonly string[];
+  preservedDietaryLabels?: readonly string[];
 }
 
 /** Presentation only. This does not publish a menu item to FOSS or another guest API. */
@@ -26,6 +28,8 @@ export function GuestMenuPreview({
   categories,
   allergens,
   dietaryLabels,
+  preservedAllergens = [],
+  preservedDietaryLabels = [],
 }: GuestMenuPreviewProps) {
   const image = normalizeMenuImageUrl(draft.imageUrl);
   const category =
@@ -76,9 +80,20 @@ export function GuestMenuPreview({
               {tag.name}
             </Tag>
           ))}
-          {!chosenAllergens.length && !chosenDietary.length && (
-            <span>No allergen or dietary labels selected</span>
-          )}
+          {preservedAllergens.map((name, index) => (
+            <Tag key={`preserved-allergen-${index}`} color="red">
+              Allergen: {name} (existing)
+            </Tag>
+          ))}
+          {preservedDietaryLabels.map((name, index) => (
+            <Tag key={`preserved-dietary-${index}`} color="green">
+              {name} (existing)
+            </Tag>
+          ))}
+          {!chosenAllergens.length &&
+            !chosenDietary.length &&
+            !preservedAllergens.length &&
+            !preservedDietaryLabels.length && <span>No allergen or dietary labels selected</span>}
         </div>
         <p className={styles.unitDisclaimer}>
           Amounts are raw KMS integers. Currency unit awaits FOSS approval.
