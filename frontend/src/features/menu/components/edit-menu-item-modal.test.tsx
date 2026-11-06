@@ -111,7 +111,7 @@ describe('R-09 Edit Menu Item modal', () => {
     expect(screen.getByRole('textbox', { name: 'Price (raw integer) *' })).toHaveValue('1200');
     expect(screen.getByRole('textbox', { name: 'Preparation minutes *' })).toHaveValue('15');
     expect(screen.getByRole('textbox', { name: 'Per-guest portion limit *' })).toHaveValue('3');
-    expect(screen.getByLabelText('Stock status')).toHaveValue('LOW_STOCK');
+    expect(screen.getByRole('radio', { name: 'Low Stock' })).toBeChecked();
     expect(screen.getByRole('textbox', { name: 'Image URL (optional)' })).toHaveValue(
       'https://example.com/rice.jpg',
     );
@@ -136,7 +136,7 @@ describe('R-09 Edit Menu Item modal', () => {
     const onUpdate = jest.fn(async () => undefined);
     const { onSaved } = renderEdit(onUpdate);
     fireEvent.change(screen.getByLabelText('Meal category *'), { target: { value: dinnerId } });
-    fireEvent.change(screen.getByLabelText('Stock status'), { target: { value: 'AVAILABLE' } });
+    fireEvent.click(screen.getByRole('radio', { name: 'Available' }));
     fireEvent.click(
       within(screen.getByRole('group', { name: 'Allergen tags' })).getByRole('checkbox', {
         name: 'Milk',
