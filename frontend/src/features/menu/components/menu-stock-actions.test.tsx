@@ -58,6 +58,7 @@ const item: MenuManagementItem = {
 
 function renderActions(
   overrides: {
+    mode?: 'status' | 'remove';
     enabled?: boolean;
     onUpdate?: (id: string, payload: { stockStatus: KmsMenuStockStatus }) => Promise<unknown>;
     onReload?: () => Promise<void>;
@@ -75,6 +76,7 @@ function renderActions(
   const result = render(
     <AppProviders>
       <MenuStockActions
+        mode={overrides.mode ?? 'status'}
         item={{ ...item, stockStatus: overrides.status ?? item.stockStatus }}
         enabled={overrides.enabled ?? true}
         onUpdate={onUpdate}
@@ -84,21 +86,29 @@ function renderActions(
   );
   return { ...result, onUpdate, onReload };
 }
-function selectStatus(value: KmsMenuStockStatus) {
+
+function changeStatus(value: KmsMenuStockStatus) {
   fireEvent.change(screen.getByRole('combobox', { name: 'Stock control for Chicken Fried Rice' }), {
     target: { value },
   });
-  fireEvent.click(screen.getByRole('button', { name: 'Apply stock for Chicken Fried Rice' }));
 }
 
-describe('R-10 quick stock action', () => {
-  it.each(['AVAILABLE', 'LOW_STOCK', 'UNAVAILABLE', 'TEMPORARILY_DISABLED'] as const)(
-    'TC-KMS-R10-UI-01: applies %s with a single-field PATCH',
+describe('R-10 / DDP-73 compact Figma stock actions', () => {
+  it('shows one status selector, without a badge, Apply, or Remove stacked below', () => {
+    renderActions();
+    expect(screen.getAllByRole('combobox', { name: /Stock control/ })).toHaveLength(1);
+    expect(screen.queryByRole('button', { name: /Apply stock/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Remove Chicken Fried Rice safely/ })).not.toBeInTheDocument();
+    expect(screen.queryByText('Quick status')).not.toBeInTheDocument();
+  });
+
+  it.each(['AVAILABLE', 'LOW_STOCK', 'UNAVAILABLE'] as const)(
+    'immediately applies %s with a single-field PATCH and reload',
     async (next) => {
       const { onUpdate, onReload } = renderActions({
         status: next === 'LOW_STOCK' ? 'AVAILABLE' : 'LOW_STOCK',
       });
-      selectStatus(next);
+      changeStatus(next);
       await waitFor(() =>
         expect(onUpdate).toHaveBeenCalledWith(item.menuItemId, { stockStatus: next }),
       );
@@ -107,33 +117,44 @@ describe('R-10 quick stock action', () => {
     },
   );
 
-  it('TC-KMS-R10-UI-02: cannot write without secure update and reload wiring', () => {
+  it('requires confirmation when the selector chooses Temporarily Disabled', async () => {
+    const { onUpdate } = renderActions();
+    changeStatus('TEMPORARILY_DISABLED');
+    expect(screen.getByText(/existing order history/)).toBeInTheDocument();
+    expect(onUpdate).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Disable item' }));
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenCalledWith(item.menuItemId, {
+        stockStatus: 'TEMPORARILY_DISABLED',
+      }),
+    );
+  });
+
+  it('cannot write without authenticated PATCH and reload callbacks', () => {
     const { onUpdate } = renderActions({ enabled: false });
     expect(screen.getByRole('combobox', { name: /Stock control/ })).toBeDisabled();
-    expect(screen.getByRole('button', { name: /Apply stock/ })).toBeDisabled();
-    expect(screen.getByRole('button', { name: /Remove Chicken Fried Rice safely/ })).toBeDisabled();
+    expect(screen.queryByText('Manager API connection required.')).not.toBeInTheDocument();
     expect(onUpdate).not.toHaveBeenCalled();
   });
 
   it.each([
     [403, 'Only a Kitchen Manager may change menu stock.'],
     [404, 'This menu item no longer exists. Refresh the menu.'],
-  ])('TC-KMS-R10-UI-03: HTTP %i feedback retains selected status', async (status, message) => {
-    const onUpdate = jest.fn(async (id: string, payload: { stockStatus: KmsMenuStockStatus }) => {
-      void id;
-      void payload;
+  ])('HTTP %i feedback rolls back visible status', async (status, message) => {
+    const onUpdate = jest.fn(async () => {
       throw Object.assign(new Error('denied'), { status });
     });
     const { onReload } = renderActions({ onUpdate });
-    selectStatus('UNAVAILABLE');
+    changeStatus('UNAVAILABLE');
     expect(await screen.findByText(message)).toBeInTheDocument();
-    expect(screen.getByRole('combobox', { name: /Stock control/ })).toHaveValue('UNAVAILABLE');
+    expect(screen.getByRole('combobox', { name: /Stock control/ })).toHaveValue('LOW_STOCK');
     expect(onReload).not.toHaveBeenCalled();
   });
 
-  it('TC-KMS-R10-UI-04: safe remove requires confirmation and PATCHes temporary disable only', async () => {
-    const { onUpdate } = renderActions();
-    fireEvent.click(screen.getByRole('button', { name: /Remove Chicken Fried Rice safely/ }));
+  it('renders a separate Remove icon, with confirmation and safe PATCH only', async () => {
+    const { onUpdate } = renderActions({ mode: 'remove' });
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Chicken Fried Rice safely' }));
     expect(screen.getByText(/existing order history/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Disable item' }));
     await waitFor(() =>
@@ -144,21 +165,24 @@ describe('R-10 quick stock action', () => {
     expect(onUpdate).toHaveBeenCalledTimes(1);
   });
 
-  it('TC-KMS-R10-UI-05: cancelling removal never calls the backend', () => {
-    const { onUpdate } = renderActions();
-    fireEvent.click(screen.getByRole('button', { name: /Remove Chicken Fried Rice safely/ }));
+  it('never writes if Remove is cancelled', () => {
+    const { onUpdate } = renderActions({ mode: 'remove' });
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Chicken Fried Rice safely' }));
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(onUpdate).not.toHaveBeenCalled();
   });
 
-  it('TC-KMS-R10-UI-06: successful write is not repeated while server refresh is pending', async () => {
-    const onReload = jest.fn(async () => {
-      throw new Error('offline');
-    });
+  it('disables Remove when the user has no connected manager API', () => {
+    renderActions({ mode: 'remove', enabled: false });
+    expect(screen.getByRole('button', { name: 'Remove Chicken Fried Rice safely' })).toBeDisabled();
+  });
+
+  it('does not repeat a confirmed PATCH while reload is pending', async () => {
+    const onReload = jest.fn(async () => { throw new Error('offline'); });
     const { onUpdate } = renderActions({ onReload });
-    selectStatus('AVAILABLE');
+    changeStatus('AVAILABLE');
     await waitFor(() => expect(onReload).toHaveBeenCalledTimes(1));
-    expect(screen.getByRole('button', { name: /Apply stock/ })).toBeDisabled();
+    expect(screen.getByRole('combobox', { name: /Stock control/ })).toBeDisabled();
     expect(onUpdate).toHaveBeenCalledTimes(1);
   });
 });

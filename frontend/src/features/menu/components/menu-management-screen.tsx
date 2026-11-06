@@ -1,6 +1,6 @@
 'use client';
 
-import { Alert, Button, Empty, Input, Spin, Tag, Typography } from 'antd';
+import { Alert, Button, Empty, Image, Input, Spin, Tag, Typography } from 'antd';
 import {
   AppstoreOutlined,
   ClockCircleOutlined,
@@ -26,9 +26,9 @@ import {
   filterMenuItems,
   formatCategoryTime,
   getStockCounts,
-  getStockFilter,
 } from '../utils/menu-management.util';
 
+import { normalizeMenuImageUrl } from '../utils/menu-item-write.validation';
 import { AddCategoryModal } from './add-category-modal';
 import { AddMenuItemModal } from './add-menu-item-modal';
 import { MenuStockActions } from './menu-stock-actions';
@@ -41,12 +41,6 @@ const stockTabs: readonly { value: MenuStockFilter; label: string }[] = [
   { value: 'UNAVAILABLE', label: 'Unavailable' },
 ];
 
-const stockLabels = {
-  AVAILABLE: 'Available',
-  LOW_STOCK: 'Low Stock',
-  UNAVAILABLE: 'Unavailable',
-  TEMPORARILY_DISABLED: 'Temporarily Disabled',
-} as const;
 
 /** Decorative category icons follow the reference screens; no Figma SVGs are embedded. */
 function MealCategoryIcon({ name }: { name: string }) {
@@ -429,7 +423,16 @@ export function MenuManagementScreen({
                       <td data-label="Item">
                         <div className={styles.itemCell}>
                           <span className={styles.itemThumb} aria-hidden="true">
-                            <PictureOutlined />
+                            {normalizeMenuImageUrl(item.imageUrl ?? '') ? (
+                              <Image
+                                src={normalizeMenuImageUrl(item.imageUrl ?? '') ?? undefined}
+                                alt=""
+                                preview={false}
+                                referrerPolicy="no-referrer"
+                              />
+                            ) : (
+                              <PictureOutlined />
+                            )}
                           </span>
                           <span>
                             <strong>{item.name}</strong>
@@ -460,18 +463,7 @@ export function MenuManagementScreen({
                       <td data-label="Prep Time">{item.preparationTime} min</td>
                       <td data-label="Portion Limit">{item.portionLimit}</td>
                       <td data-label="Stock Status">
-                        <Tag
-                          color={
-                            getStockFilter(item.stockStatus) === 'AVAILABLE'
-                              ? 'success'
-                              : getStockFilter(item.stockStatus) === 'LOW_STOCK'
-                                ? 'warning'
-                                : 'error'
-                          }
-                        >
-                          {stockLabels[item.stockStatus]}
-                        </Tag>
-                        <MenuStockActions
+                        <MenuStockActions mode="status"
                           key={`${item.menuItemId}-${item.stockStatus}`}
                           item={item}
                           enabled={Boolean(
@@ -482,7 +474,8 @@ export function MenuManagementScreen({
                         />
                       </td>
                       <td data-label="Actions">
-                        <Button
+                        <div className={styles.actionButtons}>
+                          <Button
                           icon={<EditOutlined aria-hidden="true" />}
                           disabled={!onEditItem && !canUpdateMenu && !previewMode}
                           onClick={() => {
@@ -493,9 +486,16 @@ export function MenuManagementScreen({
                           title={
                             !onEditItem ? 'Menu editing is planned for a later issue' : undefined
                           }
-                        >
-                          Edit
-                        </Button>
+                         />
+                          <MenuStockActions mode="remove"
+                          item={item}
+                          enabled={Boolean(
+                            dataMode === 'api' && onChangeStockStatus && onReloadMenuItems,
+                          )}
+                          onUpdate={onChangeStockStatus}
+                          onReload={reloadMenuItems}
+                        />
+                        </div>
                       </td>
                     </tr>
                   ))}
