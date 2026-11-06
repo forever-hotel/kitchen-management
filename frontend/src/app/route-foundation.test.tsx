@@ -1,5 +1,15 @@
 import { render, screen } from '@testing-library/react';
 
+jest.mock('../lib/auth/kms-workspace-access', () => ({
+  requireKmsWorkspaceSession: jest.fn(),
+  requireKmsManagerSession: jest.fn(),
+}));
+
+import {
+  requireKmsManagerSession,
+  requireKmsWorkspaceSession,
+} from '../lib/auth/kms-workspace-access';
+
 import { AppProviders } from '@/providers/app-providers';
 
 import LoginPage from './(auth)/login/page';
@@ -7,8 +17,24 @@ import MenuManagementPage from './(protected)/menu-management/page';
 import OrderQueuePage from './(protected)/order-queue/page';
 import TimeWindowsPage from './(protected)/time-windows/page';
 
+const managerSession = {
+  sub: 'manager-123',
+  username: 'chef.manager',
+  role: 'KITCHEN_MANAGER' as const,
+  expiresAt: Math.floor(Date.now() / 1000) + 3600,
+  passwordChangeRequired: false,
+};
+
 describe('KMS route foundation', () => {
-  it('TC-KMS-SF-004: renders the public login placeholder', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    jest.mocked(requireKmsWorkspaceSession).mockResolvedValue(managerSession);
+
+    jest.mocked(requireKmsManagerSession).mockResolvedValue(managerSession);
+  });
+
+  it('renders the public login form', () => {
     render(<LoginPage />);
 
     expect(
@@ -18,36 +44,65 @@ describe('KMS route foundation', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders the Order Queue route placeholder', () => {
-    render(<OrderQueuePage />);
+  it('renders Order Queue after staff authorization', async () => {
+    const page = await OrderQueuePage();
 
-    expect(screen.getByRole('heading', { name: 'Order Queue' })).toBeInTheDocument();
+    expect(requireKmsWorkspaceSession).toHaveBeenCalledTimes(1);
+
+    render(page);
+
+    expect(
+      screen.getByRole('heading', {
+        name: 'Order Queue',
+      }),
+    ).toBeInTheDocument();
   });
 
-  it('renders the Menu Management local sample screen instead of the route placeholder', () => {
-    render(
-      <AppProviders>
-        <MenuManagementPage />
-      </AppProviders>,
-    );
+  it('renders Menu Management after manager authorization', async () => {
+    const page = await MenuManagementPage();
 
-    expect(screen.getByRole('heading', { name: 'Lunch Menu' })).toBeInTheDocument();
+    expect(requireKmsManagerSession).toHaveBeenCalledTimes(1);
+
+    render(<AppProviders>{page}</AppProviders>);
+
+    expect(
+      screen.getByRole('heading', {
+        name: 'Lunch Menu',
+      }),
+    ).toBeInTheDocument();
+
     expect(screen.getByText('Chicken Fried Rice')).toBeInTheDocument();
+
     expect(
       screen.getByText('Fixture preview — sample data, not live menu records.'),
     ).toBeInTheDocument();
   });
 
-  it('renders the Time Windows local sample screen instead of the route placeholder', () => {
-    render(
-      <AppProviders>
-        <TimeWindowsPage />
-      </AppProviders>,
-    );
+  it('renders Time Windows after manager authorization', async () => {
+    const page = await TimeWindowsPage();
 
-    expect(screen.getByRole('heading', { name: 'Ordering Time Windows' })).toBeInTheDocument();
+    expect(requireKmsManagerSession).toHaveBeenCalledTimes(1);
+
+    render(<AppProviders>{page}</AppProviders>);
+
+    expect(
+      screen.getByRole('heading', {
+        name: 'Ordering Time Windows',
+      }),
+    ).toBeInTheDocument();
+
     expect(screen.getByText('Ordering windows: 4.')).toBeInTheDocument();
-    expect(screen.getByRole('article', { name: 'Breakfast window' })).toBeInTheDocument();
-    expect(screen.getByRole('article', { name: 'Lunch window' })).toBeInTheDocument();
+
+    expect(
+      screen.getByRole('article', {
+        name: 'Breakfast window',
+      }),
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByRole('article', {
+        name: 'Lunch window',
+      }),
+    ).toBeInTheDocument();
   });
 });

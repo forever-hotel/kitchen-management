@@ -1,4 +1,11 @@
-export default function OrderQueuePage() {
+import { requireKmsWorkspaceSession } from '../../../lib/auth/kms-workspace-access';
+
+export const dynamic = 'force-dynamic';
+
+export default async function OrderQueuePage() {
+  // Both Kitchen Staff and Kitchen Manager are allowed.
+  await requireKmsWorkspaceSession();
+
   return (
     <section aria-labelledby="order-queue-heading">
       <h2 id="order-queue-heading">Order Queue</h2>

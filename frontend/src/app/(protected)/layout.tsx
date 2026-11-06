@@ -1,11 +1,17 @@
 import type { PropsWithChildren } from 'react';
 
-import { KmsShell } from '@/components/layout/kms-shell';
+import { KmsShell } from '../../components/layout/kms-shell';
+import { requireKmsWorkspaceSession } from '../../lib/auth/kms-workspace-access';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 /**
- * The session-backed role and route authorization will be wired under DDP-235.
- * Local preview links are visible only outside production; they grant no API role.
+ * Authenticated KMS workspace.
+ * Navigation uses the role validated by the API Gateway.
  */
-export default function WorkspaceLayout({ children }: PropsWithChildren) {
-  return <KmsShell previewNavigation={process.env.NODE_ENV !== 'production'}>{children}</KmsShell>;
+export default async function WorkspaceLayout({ children }: PropsWithChildren) {
+  const session = await requireKmsWorkspaceSession();
+
+  return <KmsShell role={session.role}>{children}</KmsShell>;
 }

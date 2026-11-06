@@ -5,6 +5,7 @@ import Link from 'next/link';
 import type { PropsWithChildren } from 'react';
 
 import { getKmsNavigationItems, type KmsRole } from './kms-navigation';
+import { KmsLogoutButton } from '@/components/layout/kms-logout-button';
 
 const { Header, Content, Footer } = Layout;
 
@@ -50,6 +51,7 @@ export function KmsShell({ children, role = null, previewNavigation = false }: K
                   {item.label}
                 </Link>
               ))}
+              <KmsLogoutButton />
             </Space>
           </nav>
         ) : showPreviewNavigation ? (
