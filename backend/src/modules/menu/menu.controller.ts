@@ -39,7 +39,7 @@ import { MenuService } from './menu.service.js';
   description: 'Only KITCHEN_MANAGER can administer menu items.',
 })
 @UseGuards(KmsManagerReadGuard)
-@Controller('api/v1/menu/items')
+@Controller(['api/v1/menu/items', 'kms/api/v1/menu/items'])
 export class MenuController {
   constructor(private readonly menu: MenuService) {}
 

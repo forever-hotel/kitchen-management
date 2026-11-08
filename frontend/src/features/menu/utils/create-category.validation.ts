@@ -6,10 +6,13 @@ export interface CreateCategoryInput {
 }
 
 export function normalizeCategoryTime(value: string): string | null {
-  if (!/^\d{2}:\d{2}(?::\d{2})?$/.test(value)) return null;
-  const [hour, minute, second = 0] = value.split(':').map(Number);
-  if (hour > 23 || minute > 59 || second > 59) return null;
-  return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`;
+  const normalized = value.trim();
+
+  const match = /^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?$/.exec(normalized);
+
+  if (!match) return null;
+
+  return `${match[1]}:${match[2]}:${match[3] ?? '00'}`;
 }
 
 export function validateCreateCategory(values: CreateCategoryInput): string | null {
