@@ -11,6 +11,9 @@ const config: Config = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   testEnvironment: 'jsdom',
   testMatch: ['**/*.test.ts', '**/*.test.tsx'],
+  moduleNameMapper: {
+    '^@ant-design/colors/es/(.*)$': '<rootDir>/node_modules/@ant-design/colors/lib/$1',
+  },
   coverageDirectory: 'coverage',
 };
 

@@ -55,7 +55,7 @@ const newItem = {
 };
 
 function fillAndSubmit() {
-  fireEvent.click(screen.getByRole('button', { name: '+ Add Menu Item' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Add Menu Item' }));
   fireEvent.change(screen.getByRole('textbox', { name: 'Item name *' }), {
     target: { value: 'New Lunch Special' },
   });

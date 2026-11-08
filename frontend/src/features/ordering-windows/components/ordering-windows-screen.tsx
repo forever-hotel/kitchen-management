@@ -1,8 +1,16 @@
 'use client';
 
-import { Alert, Button, Typography } from 'antd';
+import { Alert, Button, Switch, Typography } from 'antd';
+import {
+  AppstoreOutlined,
+  CoffeeOutlined,
+  FireOutlined,
+  ReloadOutlined,
+  RightOutlined,
+  SunOutlined,
+} from '@ant-design/icons';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 
 import type { KmsMealCategoryData, KmsOrderingWindowData } from '@/types/kms-menu';
 
@@ -33,12 +41,20 @@ interface WindowRow {
   window: KmsOrderingWindowData;
 }
 
+interface TimelineEntry {
+  key: string;
+  kind: 'gap' | 'window';
+  time: string;
+  label: string;
+  open?: boolean;
+}
+
 const categoryOrder = ['breakfast', 'lunch', 'tea-time', 'dinner'];
-const categoryIcons: Record<string, string> = {
-  breakfast: '☀',
-  lunch: '☀',
-  'tea-time': '☕',
-  dinner: '☾',
+const categoryIcons: Record<string, ReactNode> = {
+  breakfast: <SunOutlined />,
+  lunch: <SunOutlined />,
+  'tea-time': <CoffeeOutlined />,
+  dinner: <FireOutlined />,
 };
 
 function clockLabel(now: Date): string {
@@ -74,7 +90,7 @@ function WindowCard({
         ? `Opens at ${displayTime(window.orderStartTime)}`
         : 'Closed';
   const cardId = `window-${window.categoryId}`;
-  const icon = categoryIcons[category.toLowerCase()] ?? '◷';
+  const icon = categoryIcons[category.toLowerCase()] ?? <AppstoreOutlined />;
   const update = async () => {
     if (!editable || saving || reloadPending) return;
     const { patch, error: validationError } = buildWindowPatch(window, start, cutoff);
@@ -129,7 +145,8 @@ function WindowCard({
           </div>
         </div>
         <span className={`${styles.status} ${styles[`status${state}`]}`}>
-          <span aria-hidden="true">●</span> {statusText}
+          <span aria-hidden="true" className={styles.statusDot} />
+          {statusText}
         </span>
       </div>
 
@@ -164,16 +181,43 @@ function WindowCard({
             disabled={saving || reloadPending}
           />
         </div>
-        <div className={styles.boundaryBox}>
-          <strong>Ordering rule</strong>
-          <span>Open at start · closed at cutoff</span>
+        <div className={styles.field}>
+          <label htmlFor={`${cardId}-last-order`}>Last order (soft)</label>
+          <input
+            id={`${cardId}-last-order`}
+            aria-label={`${category} last order time`}
+            type="time"
+            disabled
+          />
         </div>
       </div>
+      <div className={styles.toggleRow}>
+        <Switch
+          size="small"
+          checked
+          disabled
+          aria-label={`${category} ordering window enabled`}
+          className={styles.toggle}
+        />
+        <span>Ordering window enabled</span>
+      </div>
+      <p className={styles.rule}>
+        Open at start · closed at cutoff. Last order (soft) and the enabled switch are not yet
+        supported.
+      </p>
       {state === 'OPEN' && (
-        <p className={styles.activeInfo}>
-          This window is currently open. Guests can order until{' '}
-          {displayTime(window.orderCutoffTime)}.
-        </p>
+        <Alert
+          type="info"
+          showIcon
+          role="note"
+          className={styles.activeInfo}
+          title={
+            <>
+              This window is currently <strong>open</strong>. Guests can order until{' '}
+              {displayTime(window.orderCutoffTime)}.
+            </>
+          }
+        />
       )}
       {error && (
         <div role="alert" className={styles.errorMessage}>
@@ -187,7 +231,13 @@ function WindowCard({
       )}
       <div className={styles.actions}>
         {reloadPending ? (
-          <Button type="primary" loading={saving} disabled={saving} onClick={() => void retry()}>
+          <Button
+            type="primary"
+            icon={<ReloadOutlined aria-hidden="true" />}
+            loading={saving}
+            disabled={saving}
+            onClick={() => void retry()}
+          >
             Retry refresh
           </Button>
         ) : (
@@ -254,6 +304,46 @@ export function OrderingWindowsScreen({
     return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi);
   });
 
+  // Closed gaps are derived from the saved windows for display only; nothing is persisted.
+  const timeline: TimelineEntry[] = [];
+  const byStart = [...rows].sort((a, b) =>
+    a.window.orderStartTime.localeCompare(b.window.orderStartTime),
+  );
+  byStart.forEach(({ window, category }, index) => {
+    const previous = byStart[index - 1]?.window;
+    if (!previous) {
+      timeline.push({
+        key: `before-${window.categoryId}`,
+        kind: 'gap',
+        time: '00:00',
+        label: `Before ${category}`,
+      });
+    } else if (window.orderStartTime > previous.orderCutoffTime) {
+      timeline.push({
+        key: `gap-${window.categoryId}`,
+        kind: 'gap',
+        time: previous.orderCutoffTime.slice(0, 5),
+        label: 'Gap (closed)',
+      });
+    }
+    timeline.push({
+      key: window.categoryId,
+      kind: 'window',
+      time: window.orderStartTime.slice(0, 5),
+      label: windowState(window, clock) === 'OPEN' ? `${category} ← NOW` : category,
+      open: windowState(window, clock) === 'OPEN',
+    });
+  });
+  const lastWindow = byStart[byStart.length - 1]?.window;
+  if (lastWindow) {
+    timeline.push({
+      key: 'closed-for-the-day',
+      kind: 'gap',
+      time: lastWindow.orderCutoffTime.slice(0, 5),
+      label: 'Closed for the day',
+    });
+  }
+
   const refreshFromServer = async () => {
     if (!onReloadWindows) throw new Error('Manager window reload is not connected');
     const fresh = await onReloadWindows();
@@ -301,7 +391,9 @@ export function OrderingWindowsScreen({
     <section aria-labelledby="time-windows-heading" className={styles.workspace}>
       <nav aria-label="Breadcrumb" className={styles.breadcrumb}>
         <Link href="/menu-management">Menu Management</Link>
-        <span aria-hidden="true">›</span>
+        <span aria-hidden="true">
+          <RightOutlined />
+        </span>
         <span>Ordering Time Window Settings</span>
       </nav>
       <div className={styles.pageGrid}>
@@ -319,6 +411,7 @@ export function OrderingWindowsScreen({
             <div className={styles.headerControls}>
               <span className={styles.policyChip}>Asia/Colombo · saved cutoff is final</span>
               <Button
+                icon={<ReloadOutlined aria-hidden="true" />}
                 disabled={!editable || refreshing}
                 loading={refreshing}
                 onClick={() => void refresh()}
@@ -331,7 +424,7 @@ export function OrderingWindowsScreen({
             <Alert
               type="info"
               title="Feature scaffold"
-              description="Local Figma preview with sample times; no hotel records were loaded. Save and refresh require an authenticated manager API."
+              description="Sample time windows only. No hotel records loaded; saving requires an authenticated manager API."
               showIcon
             />
           )}
@@ -367,30 +460,37 @@ export function OrderingWindowsScreen({
           )}
         </div>
         <aside className={styles.rightColumn} aria-label="Ordering-window guidance">
-          <section className={styles.sidePanel} aria-labelledby="timeline-heading">
+          <section
+            className={`${styles.sidePanel} ${styles.timelinePanel}`}
+            aria-labelledby="timeline-heading"
+          >
             <h3 id="timeline-heading">Today’s timeline</h3>
             <ol className={styles.timeline}>
-              {rows.map(({ window, category }) => {
-                const state = windowState(window, clock);
-                return (
-                  <li key={window.categoryId} className={styles.timelineRow}>
-                    <span className={styles.timelineTime}>{window.orderStartTime.slice(0, 5)}</span>
-                    <span
-                      className={`${styles.timelineBar} ${state === 'OPEN' ? styles.timelineActive : ''}`}
-                    >
-                      {category}
-                      {state === 'OPEN' ? ' · Now' : ''}
-                      <small>until {window.orderCutoffTime.slice(0, 5)}</small>
-                    </span>
-                  </li>
-                );
-              })}
+              {timeline.map((entry) => (
+                <li key={entry.key} className={styles.timelineRow}>
+                  <span className={styles.timelineTime}>{entry.time}</span>
+                  <span
+                    className={`${styles.timelineBar} ${
+                      entry.kind === 'gap'
+                        ? styles.timelineGap
+                        : entry.open
+                          ? styles.timelineActive
+                          : ''
+                    }`}
+                  >
+                    {entry.label}
+                  </span>
+                </li>
+              ))}
             </ol>
             <p className={styles.timelineNote}>
               Starts are inclusive; cutoffs are exclusive. Times are hotel-local.
             </p>
           </section>
-          <section className={styles.sidePanel} aria-labelledby="window-help-heading">
+          <section
+            className={`${styles.sidePanel} ${styles.helpPanel}`}
+            aria-labelledby="window-help-heading"
+          >
             <h3 id="window-help-heading">How windows work</h3>
             <p>
               The FOSS backend must check the latest saved window when an order is submitted.

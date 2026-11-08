@@ -1,6 +1,18 @@
 'use client';
 
-import { Alert, Button, Empty, Input, Spin, Tag, Typography } from 'antd';
+import { Alert, Button, Empty, Image, Input, Spin, Tag, Typography } from 'antd';
+import {
+  AppstoreOutlined,
+  ClockCircleOutlined,
+  CoffeeOutlined,
+  EditOutlined,
+  FireOutlined,
+  PictureOutlined,
+  PlusOutlined,
+  SearchOutlined,
+  SunOutlined,
+  StarOutlined,
+} from '@ant-design/icons';
 import { useMemo, useRef, useState } from 'react';
 
 import type { KmsMealCategoryData } from '@/types/kms-menu';
@@ -10,13 +22,9 @@ import type {
   MenuManagementScreenProps,
   MenuStockFilter,
 } from '../types/menu-management.type';
-import {
-  filterMenuItems,
-  formatCategoryTime,
-  getStockCounts,
-  getStockFilter,
-} from '../utils/menu-management.util';
+import { filterMenuItems, formatCategoryTime, getStockCounts } from '../utils/menu-management.util';
 
+import { normalizeMenuImageUrl } from '../utils/menu-item-write.validation';
 import { AddCategoryModal } from './add-category-modal';
 import { AddMenuItemModal } from './add-menu-item-modal';
 import { MenuStockActions } from './menu-stock-actions';
@@ -29,12 +37,23 @@ const stockTabs: readonly { value: MenuStockFilter; label: string }[] = [
   { value: 'UNAVAILABLE', label: 'Unavailable' },
 ];
 
-const stockLabels = {
-  AVAILABLE: 'Available',
-  LOW_STOCK: 'Low Stock',
-  UNAVAILABLE: 'Unavailable',
-  TEMPORARILY_DISABLED: 'Temporarily Disabled',
-} as const;
+/** Decorative category icons follow the reference screens; no Figma SVGs are embedded. */
+function MealCategoryIcon({ name }: { name: string }) {
+  switch (name.trim().toLowerCase().replace(/\s+/g, '-')) {
+    case 'breakfast':
+      return <SunOutlined />;
+    case 'lunch':
+      return <SunOutlined />;
+    case 'tea-time':
+      return <CoffeeOutlined />;
+    case 'dinner':
+      return <FireOutlined />;
+    case 'special-meals':
+      return <StarOutlined />;
+    default:
+      return <AppstoreOutlined />;
+  }
+}
 
 /** Manager menu listing only; editing, persistence and session wiring are separate issues. */
 export function MenuManagementScreen({
@@ -161,6 +180,7 @@ export function MenuManagementScreen({
           <Button
             block
             ghost
+            icon={<PlusOutlined aria-hidden="true" />}
             disabled={!onAddCategory && (!onCreateCategory || !onRefreshCategories)}
             onClick={() => {
               if (onCreateCategory && onRefreshCategories) setModalOpen(true);
@@ -172,7 +192,7 @@ export function MenuManagementScreen({
                 : undefined
             }
           >
-            + Add Category
+            Add Category
           </Button>
         </div>
         <div role="group" aria-label="Select meal category" className={styles.categoryList}>
@@ -190,6 +210,9 @@ export function MenuManagementScreen({
                 aria-pressed={isSelected}
                 onClick={() => selectCategory(category.categoryId)}
               >
+                <span className={styles.categoryIcon} aria-hidden="true">
+                  <MealCategoryIcon name={category.name} />
+                </span>
                 <span className={styles.categoryDetails}>
                   <strong>{category.name}</strong>
                   <small>
@@ -276,14 +299,21 @@ export function MenuManagementScreen({
               </span>
             )}
             <Button
-              disabled={!onEditWindow || !selectedCategory}
+              icon={<ClockCircleOutlined aria-hidden="true" />}
+              href={previewMode && selectedCategory ? '/time-windows' : undefined}
+              disabled={(!onEditWindow && !previewMode) || !selectedCategory}
               onClick={() => selectedCategory && onEditWindow?.(selectedCategory.categoryId)}
-              title={!onEditWindow ? 'Window editing is planned for a later issue' : undefined}
+              title={
+                !onEditWindow && !previewMode
+                  ? 'Window editing requires manager integration'
+                  : undefined
+              }
             >
               Edit Window
             </Button>
             <Button
               type="primary"
+              icon={<PlusOutlined aria-hidden="true" />}
               disabled={(!onAddMenuItem && !canCreateMenu && !previewMode) || !selectedCategory}
               onClick={() => {
                 if (!selectedCategory) return;
@@ -297,7 +327,7 @@ export function MenuManagementScreen({
                   : undefined
               }
             >
-              + Add Menu Item
+              Add Menu Item
             </Button>
           </div>
         </header>
@@ -307,6 +337,7 @@ export function MenuManagementScreen({
             <Input
               aria-label="Search menu items"
               placeholder="Search items by name..."
+              prefix={<SearchOutlined aria-hidden="true" />}
               allowClear
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
@@ -387,7 +418,16 @@ export function MenuManagementScreen({
                       <td data-label="Item">
                         <div className={styles.itemCell}>
                           <span className={styles.itemThumb} aria-hidden="true">
-                            {item.name.charAt(0).toUpperCase()}
+                            {normalizeMenuImageUrl(item.imageUrl ?? '') ? (
+                              <Image
+                                src={normalizeMenuImageUrl(item.imageUrl ?? '') ?? undefined}
+                                alt=""
+                                preview={false}
+                                referrerPolicy="no-referrer"
+                              />
+                            ) : (
+                              <PictureOutlined />
+                            )}
                           </span>
                           <span>
                             <strong>{item.name}</strong>
@@ -418,18 +458,8 @@ export function MenuManagementScreen({
                       <td data-label="Prep Time">{item.preparationTime} min</td>
                       <td data-label="Portion Limit">{item.portionLimit}</td>
                       <td data-label="Stock Status">
-                        <Tag
-                          color={
-                            getStockFilter(item.stockStatus) === 'AVAILABLE'
-                              ? 'success'
-                              : getStockFilter(item.stockStatus) === 'LOW_STOCK'
-                                ? 'warning'
-                                : 'error'
-                          }
-                        >
-                          {stockLabels[item.stockStatus]}
-                        </Tag>
                         <MenuStockActions
+                          mode="status"
                           key={`${item.menuItemId}-${item.stockStatus}`}
                           item={item}
                           enabled={Boolean(
@@ -440,19 +470,30 @@ export function MenuManagementScreen({
                         />
                       </td>
                       <td data-label="Actions">
-                        <Button
-                          disabled={!onEditItem && !canUpdateMenu && !previewMode}
-                          onClick={() => {
-                            if (canUpdateMenu || previewMode) setMenuModal({ mode: 'edit', item });
-                            else onEditItem?.(item);
-                          }}
-                          aria-label={`Edit ${item.name}`}
-                          title={
-                            !onEditItem ? 'Menu editing is planned for a later issue' : undefined
-                          }
-                        >
-                          Edit
-                        </Button>
+                        <div className={styles.actionButtons}>
+                          <Button
+                            icon={<EditOutlined aria-hidden="true" />}
+                            disabled={!onEditItem && !canUpdateMenu && !previewMode}
+                            onClick={() => {
+                              if (canUpdateMenu || previewMode)
+                                setMenuModal({ mode: 'edit', item });
+                              else onEditItem?.(item);
+                            }}
+                            aria-label={`Edit ${item.name}`}
+                            title={
+                              !onEditItem ? 'Menu editing is planned for a later issue' : undefined
+                            }
+                          />
+                          <MenuStockActions
+                            mode="remove"
+                            item={item}
+                            enabled={Boolean(
+                              dataMode === 'api' && onChangeStockStatus && onReloadMenuItems,
+                            )}
+                            onUpdate={onChangeStockStatus}
+                            onReload={reloadMenuItems}
+                          />
+                        </div>
                       </td>
                     </tr>
                   ))}

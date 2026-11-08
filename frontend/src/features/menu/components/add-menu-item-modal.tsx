@@ -1,6 +1,7 @@
 'use client';
 
-import { Alert, Button, Checkbox, Input, Modal } from 'antd';
+import { Alert, Button, Checkbox, Input, Modal, Radio } from 'antd';
+import { LinkOutlined, PictureOutlined } from '@ant-design/icons';
 import { useState } from 'react';
 
 import type { KmsMealCategoryData, KmsMenuStockStatus } from '@/types/kms-menu';
@@ -13,6 +14,7 @@ import type {
   MenuItemWritePayload,
 } from '../utils/menu-item-write.validation';
 import { menuItemDraftToPayload, validateMenuItemDraft } from '../utils/menu-item-write.validation';
+import { formatCategoryTime } from '../utils/menu-management.util';
 import type { MenuItemEditPayload } from '../utils/menu-item-edit.validation';
 import {
   buildMenuItemEditPayload,
@@ -116,6 +118,13 @@ export function AddMenuItemModal({
   const unknownDietary = item ? resolveEditDietaryLabels(item, dietaryLabels).unresolved : [];
   const unidentifiedTags = unknownAllergens.length > 0 || unknownDietary.length > 0;
   const canSubmit = editing ? Boolean(onUpdate) : Boolean(onSave);
+  const activeCategory = categories.find((category) => category.categoryId === draft.categoryId);
+  const categoryLabel = activeCategory?.name ?? 'Meal category';
+  const windowLabel = activeCategory
+    ? `${formatCategoryTime(activeCategory.orderStartTime)} – ${formatCategoryTime(activeCategory.orderCutoffTime)}`
+    : null;
+  const heading = editing ? 'Edit Menu Item' : 'Add Menu Item';
+  const stockHeading = editing ? 'Stock status' : 'Initial stock status';
 
   function setField<K extends keyof MenuItemDraft>(field: K, value: MenuItemDraft[K]) {
     setDraft((current) => ({ ...current, [field]: value }));
@@ -160,210 +169,286 @@ export function AddMenuItemModal({
 
   return (
     <Modal
-      title={editing ? 'Edit Menu Item' : 'Add Menu Item'}
+      title={heading}
       open={open}
-      width={1040}
+      width={1180}
       footer={null}
       destroyOnHidden
       closable={!submitting}
       mask={{ closable: !submitting }}
       keyboard={!submitting}
+      classNames={{
+        container: styles.modalContainer,
+        header: styles.modalHeader,
+        body: styles.modalBody,
+        close: styles.modalClose,
+      }}
       onCancel={() => {
         if (!submitting) onCancel();
       }}
     >
-      {!canSubmit && (
-        <Alert
-          type="info"
-          showIcon
-          title="Form preview only — authenticated menu saving is not connected."
-          style={{ marginBottom: 14 }}
-        />
-      )}
-      {unidentifiedTags && (
-        <Alert
-          type="warning"
-          showIcon
-          title="Some existing tags are unavailable. Their server associations will remain unchanged; reload tag options to edit tags."
-          style={{ marginBottom: 14 }}
-        />
-      )}
-      {errorMessage && (
-        <Alert
-          type="error"
-          role="alert"
-          showIcon
-          title={errorMessage}
-          style={{ marginBottom: 14 }}
-        />
-      )}
-      <div className={styles.layout}>
-        <form
-          className={styles.formColumn}
-          noValidate
-          onSubmit={(event) => {
-            event.preventDefault();
-            void submit();
-          }}
-        >
-          <div className={styles.formGrid}>
-            <div className={styles.field}>
-              <label htmlFor="kms-item-name">Item name *</label>
-              <Input
-                id="kms-item-name"
-                required
-                maxLength={256}
-                value={draft.name}
-                disabled={submitting}
-                onChange={(event) => setField('name', event.target.value)}
-                placeholder="e.g. Vegetable Fried Rice"
+      <nav aria-label="Breadcrumb" className={styles.breadcrumb}>
+        <span>Menu Management</span>
+        <span aria-hidden="true">›</span>
+        <span>{categoryLabel}</span>
+        <span aria-hidden="true">›</span>
+        <strong>{editing ? 'Edit Item' : 'Add New Item'}</strong>
+      </nav>
+      <div className={styles.page}>
+        {(!canSubmit || unidentifiedTags || errorMessage) && (
+          <div className={styles.alerts}>
+            {!canSubmit && (
+              <Alert
+                type="info"
+                showIcon
+                title="Form preview only — authenticated menu saving is not connected."
               />
-            </div>
-            <div className={styles.field}>
-              <label htmlFor="kms-item-category">Meal category *</label>
-              <select
-                id="kms-item-category"
-                className={styles.select}
-                value={draft.categoryId}
-                disabled={submitting}
-                onChange={(event) => setField('categoryId', event.target.value)}
-              >
-                <option value="">Select category</option>
-                {categories.map((category) => (
-                  <option key={category.categoryId} value={category.categoryId}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className={`${styles.field} ${styles.wide}`}>
-              <label htmlFor="kms-item-description">Description</label>
-              <Input.TextArea
-                id="kms-item-description"
-                maxLength={2001}
-                rows={3}
-                value={draft.description}
-                disabled={submitting}
-                onChange={(event) => setField('description', event.target.value)}
+            )}
+            {unidentifiedTags && (
+              <Alert
+                type="warning"
+                showIcon
+                title="Some existing tags are unavailable. Their server associations will remain unchanged; reload tag options to edit tags."
               />
-            </div>
-            <div className={styles.field}>
-              <label htmlFor="kms-item-price">Price (raw integer) *</label>
-              <Input
-                id="kms-item-price"
-                inputMode="numeric"
-                value={draft.price}
-                disabled={submitting}
-                onChange={(event) => setField('price', event.target.value)}
-                placeholder="e.g. 1650"
-              />
-            </div>
-            <div className={styles.field}>
-              <label htmlFor="kms-item-prep">Preparation minutes *</label>
-              <Input
-                id="kms-item-prep"
-                inputMode="numeric"
-                value={draft.preparationTime}
-                disabled={submitting}
-                onChange={(event) => setField('preparationTime', event.target.value)}
-                placeholder="e.g. 20"
-              />
-            </div>
-            <div className={styles.field}>
-              <label htmlFor="kms-item-limit">Per-guest portion limit *</label>
-              <Input
-                id="kms-item-limit"
-                inputMode="numeric"
-                value={draft.portionLimit}
-                disabled={submitting}
-                onChange={(event) => setField('portionLimit', event.target.value)}
-              />
-            </div>
-            <div className={styles.field}>
-              <label htmlFor="kms-item-stock">Stock status</label>
-              <select
-                id="kms-item-stock"
-                className={styles.select}
-                value={draft.stockStatus}
-                disabled={submitting}
-                onChange={(event) =>
-                  setField('stockStatus', event.target.value as KmsMenuStockStatus)
-                }
-              >
-                {stockOptions.map((status) => (
-                  <option key={status.value} value={status.value}>
-                    {status.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className={`${styles.field} ${styles.wide}`}>
-              <label htmlFor="kms-item-image">Image URL (optional)</label>
-              <Input
-                id="kms-item-image"
-                type="url"
-                value={draft.imageUrl}
-                disabled={submitting}
-                onChange={(event) => setField('imageUrl', event.target.value)}
-                placeholder="https://example.com/menu-item.jpg"
-              />
-            </div>
+            )}
+            {errorMessage && <Alert type="error" role="alert" showIcon title={errorMessage} />}
           </div>
-          <h3 className={styles.sectionTitle}>Allergen tags</h3>
-          <div role="group" aria-label="Allergen tags" className={styles.tagChoices}>
-            {allergens.length ? (
-              allergens.map((tag) => (
-                <Checkbox
-                  key={tag.allergenId}
-                  checked={draft.allergenIds.includes(tag.allergenId)}
-                  disabled={submitting || unidentifiedTags}
+        )}
+        <div className={styles.layout}>
+          <form
+            className={styles.formCard}
+            noValidate
+            onSubmit={(event) => {
+              event.preventDefault();
+              void submit();
+            }}
+          >
+            <header className={styles.cardHeader}>
+              <h2 className={styles.cardTitle}>{heading}</h2>
+              <p className={styles.cardSubtitle}>
+                {editing ? 'Editing in' : 'Adding to'}: {categoryLabel}
+                {windowLabel ? ` · Ordering window: ${windowLabel}` : ''}
+              </p>
+            </header>
+            <div className={styles.cardBody}>
+              <section className={styles.section}>
+                <h3 id="kms-section-basic" className={styles.sectionTitle}>
+                  Basic information
+                </h3>
+                <div className={styles.formGrid}>
+                  <div className={styles.field}>
+                    <label htmlFor="kms-item-name">Item name *</label>
+                    <Input
+                      id="kms-item-name"
+                      required
+                      maxLength={256}
+                      value={draft.name}
+                      disabled={submitting}
+                      onChange={(event) => setField('name', event.target.value)}
+                      placeholder="e.g. Vegetable Fried Rice"
+                    />
+                  </div>
+                  <div className={styles.field}>
+                    <label htmlFor="kms-item-category">Meal category *</label>
+                    <select
+                      id="kms-item-category"
+                      className={styles.select}
+                      value={draft.categoryId}
+                      disabled={submitting}
+                      onChange={(event) => setField('categoryId', event.target.value)}
+                    >
+                      <option value="">Select category</option>
+                      {categories.map((category) => (
+                        <option key={category.categoryId} value={category.categoryId}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className={`${styles.field} ${styles.wide}`}>
+                    <label htmlFor="kms-item-description">Description</label>
+                    <Input.TextArea
+                      id="kms-item-description"
+                      maxLength={2001}
+                      rows={3}
+                      value={draft.description}
+                      disabled={submitting}
+                      onChange={(event) => setField('description', event.target.value)}
+                    />
+                  </div>
+                </div>
+              </section>
+
+              <section className={styles.section}>
+                <h3 id="kms-section-pricing" className={styles.sectionTitle}>
+                  Pricing &amp; preparation
+                </h3>
+                <div className={styles.formGrid}>
+                  <div className={styles.field}>
+                    <label htmlFor="kms-item-price">Price (raw integer) *</label>
+                    <Input
+                      id="kms-item-price"
+                      inputMode="numeric"
+                      value={draft.price}
+                      disabled={submitting}
+                      onChange={(event) => setField('price', event.target.value)}
+                      placeholder="e.g. 1650"
+                    />
+                    <span className={styles.hint}>Whole-number value as stored</span>
+                  </div>
+                  <div className={styles.field}>
+                    <label htmlFor="kms-item-prep">Preparation minutes *</label>
+                    <Input
+                      id="kms-item-prep"
+                      inputMode="numeric"
+                      value={draft.preparationTime}
+                      disabled={submitting}
+                      onChange={(event) => setField('preparationTime', event.target.value)}
+                      placeholder="e.g. 20"
+                    />
+                    <span className={styles.hint}>Used to calculate estimated delivery time</span>
+                  </div>
+                  <div className={styles.field}>
+                    <label htmlFor="kms-item-limit">Per-guest portion limit *</label>
+                    <Input
+                      id="kms-item-limit"
+                      inputMode="numeric"
+                      value={draft.portionLimit}
+                      disabled={submitting}
+                      onChange={(event) => setField('portionLimit', event.target.value)}
+                    />
+                    <span className={styles.hint}>Max quantity per guest per order</span>
+                  </div>
+                  <div className={styles.field}>
+                    <label htmlFor="kms-item-calories">Calories (kcal)</label>
+                    <Input
+                      id="kms-item-calories"
+                      inputMode="numeric"
+                      disabled
+                      placeholder="Not stored yet"
+                    />
+                    <span className={styles.hint}>Not yet supported by the menu API</span>
+                  </div>
+                </div>
+              </section>
+
+              <section className={styles.section}>
+                <h3 id="kms-section-allergens" className={styles.sectionTitle}>
+                  Allergen tags
+                </h3>
+                <div role="group" aria-label="Allergen tags" className={styles.tagChoices}>
+                  {allergens.length ? (
+                    allergens.map((tag) => (
+                      <Checkbox
+                        key={tag.allergenId}
+                        checked={draft.allergenIds.includes(tag.allergenId)}
+                        disabled={submitting || unidentifiedTags}
+                        onChange={(event) =>
+                          toggleId('allergenIds', tag.allergenId, event.target.checked)
+                        }
+                      >
+                        {tag.name}
+                      </Checkbox>
+                    ))
+                  ) : (
+                    <span className={styles.hint}>No allergen options loaded.</span>
+                  )}
+                </div>
+              </section>
+
+              <section className={styles.section}>
+                <h3 id="kms-section-dietary" className={styles.sectionTitle}>
+                  Dietary labels
+                </h3>
+                <div role="group" aria-label="Dietary labels" className={styles.tagChoices}>
+                  {dietaryLabels.length ? (
+                    dietaryLabels.map((tag) => (
+                      <Checkbox
+                        key={tag.dietaryLabelId}
+                        checked={draft.dietaryLabelIds.includes(tag.dietaryLabelId)}
+                        disabled={submitting || unidentifiedTags}
+                        onChange={(event) =>
+                          toggleId('dietaryLabelIds', tag.dietaryLabelId, event.target.checked)
+                        }
+                      >
+                        {tag.name}
+                      </Checkbox>
+                    ))
+                  ) : (
+                    <span className={styles.hint}>No dietary options loaded.</span>
+                  )}
+                </div>
+              </section>
+
+              <section className={styles.section}>
+                <h3 id="kms-item-stock-heading" className={styles.sectionTitle}>
+                  {stockHeading}
+                </h3>
+                <Radio.Group
+                  className={styles.stockGroup}
+                  aria-labelledby="kms-item-stock-heading"
+                  name="kms-item-stock"
+                  value={draft.stockStatus}
+                  disabled={submitting}
                   onChange={(event) =>
-                    toggleId('allergenIds', tag.allergenId, event.target.checked)
+                    setField('stockStatus', event.target.value as KmsMenuStockStatus)
                   }
                 >
-                  {tag.name}
-                </Checkbox>
-              ))
-            ) : (
-              <span>No allergen options loaded.</span>
-            )}
-          </div>
-          <h3 className={styles.sectionTitle}>Dietary labels</h3>
-          <div role="group" aria-label="Dietary labels" className={styles.tagChoices}>
-            {dietaryLabels.length ? (
-              dietaryLabels.map((tag) => (
-                <Checkbox
-                  key={tag.dietaryLabelId}
-                  checked={draft.dietaryLabelIds.includes(tag.dietaryLabelId)}
-                  disabled={submitting || unidentifiedTags}
-                  onChange={(event) =>
-                    toggleId('dietaryLabelIds', tag.dietaryLabelId, event.target.checked)
-                  }
-                >
-                  {tag.name}
-                </Checkbox>
-              ))
-            ) : (
-              <span>No dietary options loaded.</span>
-            )}
-          </div>
-          <div className={styles.actions}>
-            <Button onClick={onCancel} disabled={submitting}>
-              Cancel
-            </Button>
-            <Button type="primary" htmlType="submit" loading={submitting} disabled={!canSubmit}>
-              {editing ? 'Save Changes' : 'Save Menu Item'}
-            </Button>
-          </div>
-        </form>
-        <GuestMenuPreview
-          draft={draft}
-          categories={categories}
-          allergens={allergens}
-          dietaryLabels={dietaryLabels}
-          preservedAllergens={unknownAllergens}
-          preservedDietaryLabels={unknownDietary}
-        />
+                  {stockOptions.map((status) => (
+                    <Radio
+                      key={status.value}
+                      value={status.value}
+                      className={`${styles.stockOption} ${styles[`stock_${status.value}`]}`}
+                    >
+                      {status.label}
+                    </Radio>
+                  ))}
+                </Radio.Group>
+              </section>
+
+              <section className={styles.section}>
+                <h3 id="kms-section-image" className={styles.sectionTitle}>
+                  Item image
+                </h3>
+                <div className={styles.dropzone}>
+                  <PictureOutlined aria-hidden="true" className={styles.dropzoneIcon} />
+                  <label htmlFor="kms-item-image" className={styles.dropzoneTitle}>
+                    Image URL (optional)
+                  </label>
+                  <Input
+                    id="kms-item-image"
+                    type="url"
+                    className={styles.dropzoneInput}
+                    prefix={<LinkOutlined aria-hidden="true" />}
+                    value={draft.imageUrl}
+                    disabled={submitting}
+                    onChange={(event) => setField('imageUrl', event.target.value)}
+                    placeholder="https://example.com/menu-item.jpg"
+                  />
+                  <span className={styles.hint}>
+                    Paste a public http(s) image link · File upload is not yet supported
+                  </span>
+                </div>
+              </section>
+            </div>
+            <footer className={styles.actions}>
+              <Button onClick={onCancel} disabled={submitting}>
+                Cancel
+              </Button>
+              <Button type="primary" htmlType="submit" loading={submitting} disabled={!canSubmit}>
+                {editing ? 'Save Changes' : 'Save Menu Item'}
+              </Button>
+            </footer>
+          </form>
+          <GuestMenuPreview
+            draft={draft}
+            categories={categories}
+            allergens={allergens}
+            dietaryLabels={dietaryLabels}
+            preservedAllergens={unknownAllergens}
+            preservedDietaryLabels={unknownDietary}
+          />
+        </div>
       </div>
     </Modal>
   );

@@ -1,50 +1,141 @@
-.controls {
-  display: grid;
-  gap: 6px;
-  margin-top: 8px;
-  min-width: 145px;
-}
-
-.inputLabel {
-  font-size: 11px;
-  font-weight: 600;
-  color: #5a5650;
-}
-
-.quickRow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 5px;
-}
-
-.quickRow select {
+/* DDP-73 — one compact status selector and one safe-disable icon. */
+.controls,
+.removeWrapper {
+  display: inline-flex;
+  width: 100%;
   min-width: 0;
-  max-width: 180px;
-  border: 1px solid #cad5df;
-  border-radius: 6px;
-  padding: 6px;
-  background: #fff;
-  color: #12263a;
-  font: inherit;
+  position: relative;
+  align-items: center;
+}
+
+.selectWrap {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  color: #1a6b3c;
+}
+
+.selectWrap::before {
+  position: absolute;
+  z-index: 1;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 14px;
+  font-weight: 800;
+  content: '✓';
+}
+
+.selectWrap::after {
+  position: absolute;
+  right: 12px;
+  top: calc(50% - 3px);
+  width: 7px;
+  height: 7px;
+  border-right: 1.6px solid currentColor;
+  border-bottom: 1.6px solid currentColor;
+  transform: rotate(45deg);
+  content: '';
+  pointer-events: none;
+}
+
+.selectWrap select {
+  display: block;
+  appearance: none;
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  padding: 0 28px 0 32px;
+  border: 1px solid #73b78c;
+  border-radius: 8px;
+  background: #e9f5ed;
+  color: inherit;
+  font-family: inherit;
   font-size: 12px;
+  line-height: 38px;
+  font-weight: 700;
+  cursor: pointer;
+  text-overflow: ellipsis;
 }
 
-.quickRow select:focus-visible {
-  outline: 2px solid #1a3c5e;
-  outline-offset: 1px;
+.selectWrap select:focus-visible,
+.removeAction:focus-visible {
+  outline: 2px solid #c9920d;
+  outline-offset: 2px;
 }
 
-.quickRow select:disabled {
-  background: #f5f3ef;
-  opacity: 0.75;
+.selectWrap select:disabled {
+  cursor: not-allowed;
+  opacity: 1;
+  -webkit-text-fill-color: currentColor;
 }
 
-.note {
-  font-size: 11px;
+.stock_LOW_STOCK {
+  color: #9b6500;
+}
+.stock_LOW_STOCK::before {
+  content: '!';
+}
+.stock_LOW_STOCK select {
+  border-color: #dcae3f;
+  background: #fff5e5;
+}
+.stock_UNAVAILABLE {
+  color: #a91616;
+}
+.stock_UNAVAILABLE::before {
+  content: '×';
+}
+.stock_UNAVAILABLE select {
+  border-color: #d46c6c;
+  background: #fff0f0;
+}
+.stock_TEMPORARILY_DISABLED {
   color: #5a5650;
 }
+.stock_TEMPORARILY_DISABLED::before {
+  content: '−';
+}
+.stock_TEMPORARILY_DISABLED select {
+  border-color: #ccc8bf;
+  background: #f1f0ec;
+}
 
+.removeWrapper {
+  width: auto;
+  flex: 0 0 auto;
+}
+
+.removeWrapper .removeAction {
+  display: inline-flex;
+  width: 38px;
+  min-width: 38px;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid #d0d8cf;
+  border-radius: 8px;
+  background: #fff;
+  color: #35465a;
+  box-shadow: none;
+}
+
+.removeWrapper .removeAction:not(:disabled):hover {
+  border-color: #a91616;
+  background: #fff0f0;
+  color: #a91616;
+}
+
+/* Errors only appear when the server rejects a write; never add idle row clutter. */
 .error {
-  max-width: 245px;
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 6px);
+  left: 0;
+  width: max-content;
+  max-width: min(320px, 80vw);
+  padding: 8px;
+  box-shadow: 0 5px 20px #12263a26;
 }
