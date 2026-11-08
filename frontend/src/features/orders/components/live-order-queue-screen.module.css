@@ -12,6 +12,13 @@
   font-weight: 700;
   white-space: nowrap;
 }
+/* Signal that the previous snapshot is being kept after a failed refresh. */
+.delayedBadge {
+  color: #925a05;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
 .refreshButton {
   border-left: 1px solid #d8dcd8 !important;
   border-radius: 0 !important;
