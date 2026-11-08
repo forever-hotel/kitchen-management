@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { KmsOrderIntakeGuard } from '../../common/guards/kms-order-intake.guard.js';
+import { OrderReadyOutboxService } from '../../messaging/order-ready-outbox.service.js';
 import { MealCategory } from '../menu-categories/entities/meal-category.entity.js';
 import { MenuItem } from '../menu/entities/menu-item.entity.js';
 
@@ -51,6 +52,7 @@ import { KotPrintRepository } from './repositories/kot-print.repository.js';
     KotPrintJobsService,
     AllergySafetyService,
     OrdersTransitionService,
+    OrderReadyOutboxService,
     OrdersCreateService,
     KmsOrderIntakeGuard,
     FoodOrderRepository,
