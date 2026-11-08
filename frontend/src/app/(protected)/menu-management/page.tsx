@@ -4,11 +4,17 @@ import {
   MENU_PREVIEW_ITEMS,
 } from '@/features/menu/data/menu-preview.data';
 
+import { requireKmsManagerSession } from '../../../lib/auth/kms-workspace-access';
+
+export const dynamic = 'force-dynamic';
+
 /**
- * UI previews run only with Next.js in development or test mode.
- * Production must never render unauthenticated fixture data as a live manager view.
+ * Only authenticated Kitchen Managers may access Menu Management.
+ * Fixture data is available for local UI testing only.
  */
-export default function MenuManagementPage() {
+export default async function MenuManagementPage() {
+  await requireKmsManagerSession();
+
   if (process.env.NODE_ENV === 'production') {
     return (
       <section aria-labelledby="menu-management-heading">

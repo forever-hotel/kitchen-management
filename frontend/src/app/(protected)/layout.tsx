@@ -1,14 +1,14 @@
 import type { PropsWithChildren } from 'react';
 
-import { KmsShell } from '@/components/layout/kms-shell';
+import { KmsShell } from '../../components/layout/kms-shell';
+import { requireKmsWorkspaceSession } from '../../lib/auth/kms-workspace-access';
 
-/**
- * Temporary development-only navigation preview.
- * DDP-235 must supply authenticated role-based access
- * before the application is integrated or deployed.
- */
-export default function WorkspaceLayout({ children }: PropsWithChildren) {
-  const previewNavigation = process.env.NODE_ENV !== 'production';
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
-  return <KmsShell previewNavigation={previewNavigation}>{children}</KmsShell>;
+/** Live Gateway session and role always control protected KMS navigation. */
+export default async function WorkspaceLayout({ children }: PropsWithChildren) {
+  const session = await requireKmsWorkspaceSession();
+
+  return <KmsShell role={session.role}>{children}</KmsShell>;
 }

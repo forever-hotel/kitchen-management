@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { PropsWithChildren } from 'react';
 
+import { KmsLogoutButton } from './kms-logout-button';
 import { KmsCurrentTime } from './kms-current-time';
 import styles from './kms-header.module.css';
 import { getKmsNavigationItems, type KmsRole } from './kms-navigation';
@@ -13,21 +14,15 @@ const { Content, Footer } = Layout;
 
 interface KmsShellProps extends PropsWithChildren {
   role?: KmsRole | null;
-  /**
-   * Local UI preview only.
-   * Never grants authentication or authorization.
-   */
-  previewNavigation?: boolean;
 }
 
-export function KmsShell({ children, role = null, previewNavigation = false }: KmsShellProps) {
+/**
+ * The approved Order Queue navigation skin, bound to real DDP-235 session roles.
+ * No development-only manager bypass or preview navigation is permitted.
+ */
+export function KmsShell({ children, role = null }: KmsShellProps) {
   const pathname = usePathname();
-
-  const allowPreview = previewNavigation && process.env.NODE_ENV !== 'production';
-
-  const navigationRole = role ?? (allowPreview ? 'KITCHEN_MANAGER' : null);
-
-  const navigationItems = getKmsNavigationItems(navigationRole);
+  const navigationItems = getKmsNavigationItems(role);
 
   return (
     <Layout className="kms-shell">
@@ -58,6 +53,7 @@ export function KmsShell({ children, role = null, previewNavigation = false }: K
                 </Link>
               );
             })}
+            <KmsLogoutButton />
           </nav>
         )}
 

@@ -1,16 +1,15 @@
 import { OrderQueueBoard } from '@/features/orders/components/order-queue-board';
 import { createOrderQueueFixtures } from '@/features/orders/fixtures/order-queue.fixtures';
+import { requireKmsWorkspaceSession } from '../../../lib/auth/kms-workspace-access';
 
-/**
- * Render the fixture timestamps at request time.
- * Replace this fixture adapter with the real KMS API
- * after the order backend is implemented.
- */
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export default function OrderQueuePage() {
-  const referenceTime = new Date();
+/** Both KITCHEN_STAFF and KITCHEN_MANAGER can view the fixture queue. */
+export default async function OrderQueuePage() {
+  await requireKmsWorkspaceSession();
 
+  const referenceTime = new Date();
   const orders = createOrderQueueFixtures(referenceTime);
 
   return (
