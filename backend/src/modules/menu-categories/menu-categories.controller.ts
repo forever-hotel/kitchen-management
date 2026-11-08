@@ -27,6 +27,7 @@ import { CreateMealCategoryDto } from './dto/create-meal-category.dto.js';
 import { MealCategoryResponseDto } from './dto/meal-category-response.dto.js';
 import { OrderingWindowResponseDto } from './dto/ordering-window-response.dto.js';
 import { UpdateOrderingWindowDto } from './dto/update-ordering-window.dto.js';
+import { UpdateOrderingEnabledDto } from './dto/update-ordering-enabled.dto.js';
 import { UpdateMealCategoryDto } from './dto/update-meal-category.dto.js';
 import { MenuCategoriesService } from './menu-categories.service.js';
 
@@ -91,6 +92,24 @@ export class MenuCategoriesController {
     @Body() payload: unknown,
   ): Promise<OrderingWindowResponseDto> {
     return this.categories.updateOrderingWindow(categoryId, payload);
+  }
+
+  @Patch(':categoryId/window/enabled')
+  @ApiOperation({
+    summary:
+      'Enable or disable a saved category ordering window (manager only)',
+  })
+  @ApiBody({ type: UpdateOrderingEnabledDto })
+  @ApiOkResponse({ type: OrderingWindowResponseDto })
+  @ApiBadRequestResponse({
+    description: 'Expected exactly one boolean orderingEnabled field.',
+  })
+  @ApiNotFoundResponse({ description: 'Category does not exist.' })
+  updateOrderingEnabled(
+    @Param('categoryId', new ParseUUIDPipe()) categoryId: string,
+    @Body() payload: unknown,
+  ): Promise<OrderingWindowResponseDto> {
+    return this.categories.updateOrderingEnabled(categoryId, payload);
   }
 
   @Patch(':categoryId')

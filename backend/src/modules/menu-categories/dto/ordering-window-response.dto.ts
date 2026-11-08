@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 /** The category is the single source of truth; no separate window table. */
 export class OrderingWindowResponseDto {
@@ -19,6 +19,11 @@ export class OrderingWindowResponseDto {
     description: 'Hotel local time, Asia/Colombo',
   })
   orderCutoffTime!: string;
+
+  @ApiPropertyOptional({
+    description: 'Saved manager-controlled availability flag',
+  })
+  orderingEnabled?: boolean;
 
   @ApiProperty({ example: 'Asia/Colombo' })
   timeZone!: 'Asia/Colombo';

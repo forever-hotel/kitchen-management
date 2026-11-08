@@ -29,6 +29,8 @@ export interface KmsMealCategoryData {
   name: string;
   orderStartTime: string;
   orderCutoffTime: string;
+  /** Available only after the DDP-268 KMS migration is deployed. */
+  orderingEnabled?: boolean;
 }
 
 /**
@@ -57,5 +59,5 @@ export interface KmsMenuItemData {
  */
 export type KmsOrderingWindowData = Pick<
   KmsMealCategoryData,
-  'categoryId' | 'orderStartTime' | 'orderCutoffTime'
+  'categoryId' | 'orderStartTime' | 'orderCutoffTime' | 'orderingEnabled'
 >;

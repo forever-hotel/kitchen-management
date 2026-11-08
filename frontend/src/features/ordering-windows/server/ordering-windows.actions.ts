@@ -45,6 +45,23 @@ export async function updateOrderingWindow(
   });
 }
 
+/** Saves only the manager-controlled availability flag; never bypasses the backend guard. */
+export async function updateOrderingEnabled(
+  categoryId: string,
+  orderingEnabled: boolean,
+): Promise<void> {
+  if (typeof categoryId !== 'string' || !CATEGORY_ID.test(categoryId)) {
+    throw new Error('A valid meal category ID is required.');
+  }
+  if (typeof orderingEnabled !== 'boolean') {
+    throw new Error('Ordering availability must be true or false.');
+  }
+  await managerMenuRequest(`/categories/${categoryId}/window/enabled`, {
+    method: 'PATCH',
+    body: { orderingEnabled },
+  });
+}
+
 export async function retryOrderingWindowsPage(): Promise<void> {
   redirect('/time-windows');
 }

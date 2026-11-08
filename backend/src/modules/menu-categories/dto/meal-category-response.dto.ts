@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class MealCategoryResponseDto {
   @ApiProperty({ format: 'uuid' })
@@ -18,4 +18,9 @@ export class MealCategoryResponseDto {
     description: 'Database TIME value in local hotel time.',
   })
   orderCutoffTime!: string;
+
+  @ApiPropertyOptional({
+    description: 'Saved manager-controlled availability flag',
+  })
+  orderingEnabled?: boolean;
 }

@@ -35,6 +35,9 @@ export interface OrderingWindowsScreenProps {
   /** The hosting authenticated manager BFF is responsible for its own role enforcement. */
   onUpdateWindow?: (categoryId: string, patch: OrderingWindowPatch) => Promise<unknown>;
   onReloadWindows?: () => Promise<readonly KmsOrderingWindowData[]>;
+  /** Deliberately gated until the migration and FOSS enforcement are verified. */
+  availabilityControlsEnabled?: boolean;
+  onUpdateAvailability?: (categoryId: string, enabled: boolean) => Promise<unknown>;
   /** Only API data with both connected callbacks can enable saving. */
   dataMode?: 'fixtures' | 'api';
   /** Optional deterministic clock for tests; otherwise updated while the screen is mounted. */
@@ -71,6 +74,8 @@ function WindowCard({
   now,
   selected,
   editable,
+  canToggle,
+  onToggle,
   onSave,
   onRetryReload,
 }: {
@@ -78,6 +83,8 @@ function WindowCard({
   now: Date;
   selected: boolean;
   editable: boolean;
+  canToggle: boolean;
+  onToggle: (id: string, next: boolean) => Promise<boolean>;
   onSave: (id: string, patch: OrderingWindowPatch) => Promise<boolean>;
   onRetryReload: () => Promise<void>;
 }) {
@@ -97,11 +104,13 @@ function WindowCard({
     start !== window.orderStartTime.slice(0, 5) || cutoff !== window.orderCutoffTime.slice(0, 5);
   const state = windowState(window, now);
   const statusText =
-    state === 'OPEN'
-      ? 'Live now'
-      : state === 'UPCOMING'
-        ? `Opens at ${displayTime(window.orderStartTime)}`
-        : 'Closed';
+    window.orderingEnabled === false
+      ? 'Disabled'
+      : state === 'OPEN'
+        ? 'Live now'
+        : state === 'UPCOMING'
+          ? `Opens at ${displayTime(window.orderStartTime)}`
+          : 'Closed';
   const cardId = `window-${window.categoryId}`;
   const icon = categoryIcons[category.toLowerCase()] ?? <AppstoreOutlined />;
   const update = async () => {
@@ -122,6 +131,22 @@ function WindowCard({
       if (!verified) {
         setReloadPending(true);
         setError('Changes were saved, but the list could not be refreshed. Retry refresh.');
+      }
+    } catch (failure) {
+      setError(windowUpdateError(failure));
+    } finally {
+      setSaving(false);
+    }
+  };
+  const toggle = async (checked: boolean) => {
+    if (!canToggle || saving || reloadPending) return;
+    setError(null);
+    setSaving(true);
+    try {
+      const verified = await onToggle(window.categoryId, checked);
+      if (!verified) {
+        setReloadPending(true);
+        setError('Availability was saved, but the list could not be refreshed. Retry refresh.');
       }
     } catch (failure) {
       setError(windowUpdateError(failure));
@@ -212,16 +237,18 @@ function WindowCard({
       <div className={styles.toggleRow}>
         <Switch
           size="small"
-          checked
-          disabled
+          checked={window.orderingEnabled === true}
+          disabled={!canToggle || saving || reloadPending}
+          loading={saving}
+          onChange={(checked) => void toggle(checked)}
           aria-label={`${category} ordering window enabled`}
           className={styles.toggle}
         />
         <span>Ordering window enabled</span>
       </div>
       <p className={styles.rule}>
-        Open at start · closed at cutoff. Last order (soft) and the enabled switch are not yet
-        supported.
+        Open at start · closed at cutoff. Availability is saved to KMS when enabled for this
+        deployment. Soft last-order remains unsupported.
       </p>
       {state === 'OPEN' && (
         <Alert
@@ -292,6 +319,8 @@ export function OrderingWindowsScreen({
   onRetry,
   onUpdateWindow,
   onReloadWindows,
+  availabilityControlsEnabled = true,
+  onUpdateAvailability,
   dataMode = 'fixtures',
   now,
 }: OrderingWindowsScreenProps) {
@@ -397,6 +426,31 @@ export function OrderingWindowsScreen({
       return false;
     }
   };
+  const canToggle =
+    dataMode === 'api' &&
+    !loadError &&
+    availabilityControlsEnabled &&
+    Boolean(onUpdateAvailability && onReloadWindows);
+  const toggleAvailability = async (categoryId: string, next: boolean): Promise<boolean> => {
+    if (!canToggle || !onUpdateAvailability || !onReloadWindows) {
+      throw new Error('Ordering availability is not enabled for this deployment.');
+    }
+    setSavedNotice(null);
+    await onUpdateAvailability(categoryId, next);
+    try {
+      const fresh = await onReloadWindows();
+      const updated = fresh.find((item) => item.categoryId === categoryId);
+      if (!updated || updated.orderingEnabled !== next) {
+        throw new Error('Saved ordering availability was not confirmed by the reload.');
+      }
+      setReloaded({ source: windows, values: fresh });
+      setRefreshError(null);
+      setSavedNotice('Ordering availability saved and refreshed from the server.');
+      return true;
+    } catch {
+      return false;
+    }
+  };
   const refresh = async () => {
     if (refreshing || !editable) return;
     setRefreshing(true);
@@ -451,6 +505,14 @@ export function OrderingWindowsScreen({
               showIcon
             />
           )}
+          {/* {availabilityControlsEnabled && (
+            <Alert
+              type="warning"
+              showIcon
+              title="Guest-order enforcement pending"
+              description="This switch currently saves KMS availability only. FOSS still has separate fixed meal windows; do not rely on this control to stop guest orders until the FOSS integration is deployed."
+            />
+          )} */}
           {savedNotice && (
             <Alert
               type="success"
@@ -479,6 +541,8 @@ export function OrderingWindowsScreen({
                 now={clock}
                 selected={selectedCategoryId === row.window.categoryId}
                 editable={editable}
+                canToggle={canToggle && typeof row.window.orderingEnabled === 'boolean'}
+                onToggle={toggleAvailability}
                 onSave={save}
                 onRetryReload={refreshFromServer}
               />
@@ -520,7 +584,7 @@ export function OrderingWindowsScreen({
               Starts are inclusive; cutoffs are exclusive. Times are hotel-local.
             </p>
           </section>
-          <section
+          {/* <section
             className={`${styles.sidePanel} ${styles.helpPanel}`}
             aria-labelledby="window-help-heading"
           >
@@ -529,21 +593,21 @@ export function OrderingWindowsScreen({
               The FOSS backend must check the latest saved window when an order is submitted.
               Viewing the menu is not authorization to place an order after cutoff.
             </p>
-          </section>
-          <section
+          </section> */}
+          {/* <section
             className={`${styles.sidePanel} ${styles.policyPanel}`}
             aria-labelledby="schema-heading"
           >
             <h3 id="schema-heading">Supported settings</h3>
             <p>
-              Only start and cutoff times are persisted. An enabled switch, soft last-order time and
-              all-day mode are not yet approved database features.
+              KMS stores start, cutoff, and the availability flag after the DDP-268 migration. Soft
+              last-order and all-day modes are not supported.
             </p>
             <p>
               Cross-category overlap rules and live FOSS enforcement remain separate integration
               decisions.
             </p>
-          </section>
+          </section> */}
         </aside>
       </div>
     </section>

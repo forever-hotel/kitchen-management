@@ -30,7 +30,9 @@ export class MealCategoryRepository {
    */
   updateCategory(
     categoryId: string,
-    changesFor: (current: MealCategory) => Partial<CategoryWriteFields>,
+    changesFor: (
+      current: MealCategory,
+    ) => Partial<CategoryWriteFields & Pick<MealCategory, 'orderingEnabled'>>,
   ): Promise<MealCategory | null> {
     return this.repository.manager.transaction(async (manager) => {
       const categories = manager.getRepository(MealCategory);

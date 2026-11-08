@@ -39,7 +39,13 @@ function optionalText(value: unknown, field: string): string | null {
 export function mapMenuCategories(input: unknown): KmsMealCategoryData[] {
   return list(input, 'category').map((entry) => {
     const data = object(entry);
+    if (data.orderingEnabled !== undefined && typeof data.orderingEnabled !== 'boolean') {
+      throw new Error('KMS returned an invalid ordering availability flag.');
+    }
     return {
+      ...(typeof data.orderingEnabled === 'boolean'
+        ? { orderingEnabled: data.orderingEnabled }
+        : {}),
       categoryId: nonempty(data.categoryId, 'category ID'),
       name: nonempty(data.name, 'category name'),
       orderStartTime: nonempty(data.orderStartTime, 'order start time'),
