@@ -74,11 +74,7 @@ describe('KMS route foundation', () => {
     render(<AppProviders>{page}</AppProviders>);
     expect(screen.getByRole('heading', { name: 'Ordering Time Windows' })).toBeInTheDocument();
     expect(screen.getByText('Ordering windows: 4.')).toBeInTheDocument();
-    expect(
-      screen.getByRole('article', { name: 'Breakfast ordering window' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('article', { name: 'Lunch ordering window' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('article', { name: 'Breakfast ordering window' })).toBeInTheDocument();
+    expect(screen.getByRole('article', { name: 'Lunch ordering window' })).toBeInTheDocument();
   });
 });
