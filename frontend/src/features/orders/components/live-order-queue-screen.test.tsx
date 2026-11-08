@@ -249,7 +249,220 @@ describe('DDP-262 Live Order Queue', () => {
       jsonResponse({ error: 'Kitchen backend unavailable' }, 503),
     );
     render(<LiveOrderQueueScreen />);
-    expect(await screen.findByText('Kitchen backend unavailable')).toBeInTheDocument();
+    expect(await screen.findByText(/Kitchen backend unavailable/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
+  });
+});
+
+// DDP-264: drive the real component's interval without fake timers.
+// Testing Library uses timers for waitFor; replacing them with Jest fake timers
+// triggers unrelated jsdom/Ant Design warnings and can make tests unreliable.
+function captureQueuePolling() {
+  const original = window.setInterval;
+  let tick: (() => void) | null = null;
+  window.setInterval = ((callback: TimerHandler, timeout?: number, ...args: unknown[]) => {
+    if (timeout === 15_000 && typeof callback === 'function') {
+      tick = () => callback(...args);
+      return 987654;
+    }
+    return original(callback, timeout, ...args);
+  }) as typeof window.setInterval;
+  return {
+    tick: () => {
+      if (!tick) throw new Error('Queue polling interval was not installed');
+      tick();
+    },
+    restore: () => {
+      window.setInterval = original;
+    },
+  };
+}
+
+describe('DDP-264 automatic synchronization', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env.NEXT_PUBLIC_KMS_QUEUE_REFRESH_MS = '15000';
+  });
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    delete process.env.NEXT_PUBLIC_KMS_QUEUE_REFRESH_MS;
+  });
+
+  it('inserts new persisted orders automatically without a browser reload', async () => {
+    const newOrder = {
+      ...order,
+      orderId: '55555555-5555-4555-8555-555555555555',
+      roomNumber: '305',
+    };
+    let items = [order];
+    globalThis.fetch = jest.fn(async () => jsonResponse({ items, total: items.length }));
+    const polling = captureQueuePolling();
+    try {
+      render(<LiveOrderQueueScreen />);
+      expect(await screen.findByText('Room 204')).toBeInTheDocument();
+      items = [order, newOrder];
+      await act(async () => polling.tick());
+      expect(await screen.findByText('Room 305')).toBeInTheDocument();
+      expect(screen.getAllByRole('article', { name: /Order #/i })).toHaveLength(2);
+    } finally {
+      polling.restore();
+    }
+  });
+
+  it('moves changed statuses, updates counts and deduplicates repeated UUIDs', async () => {
+    let items = [order];
+    globalThis.fetch = jest.fn(async () => jsonResponse({ items, total: items.length }));
+    const polling = captureQueuePolling();
+    try {
+      render(<LiveOrderQueueScreen />);
+      expect(await screen.findByRole('button', { name: 'Start preparation' })).toBeInTheDocument();
+      items = [
+        { ...order, status: 'PLACED' },
+        { ...order, status: 'READY' },
+      ];
+      await act(async () => polling.tick());
+      expect(await screen.findByText('Awaiting delivery worker')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Start preparation' })).not.toBeInTheDocument();
+      expect(screen.getAllByRole('article', { name: 'Order #11111111' })).toHaveLength(1);
+      expect(screen.getByLabelText('Live Order Queue summary')).toHaveTextContent(
+        'Ready for Delivery1',
+      );
+    } finally {
+      polling.restore();
+    }
+  });
+
+  it('preserves visible cards during network failure and clears stale warning after recovery', async () => {
+    let offline = false;
+    globalThis.fetch = jest.fn(async () =>
+      offline
+        ? jsonResponse({ error: 'Temporary kitchen outage' }, 503)
+        : jsonResponse({ items: [order], total: 1 }),
+    );
+    const polling = captureQueuePolling();
+    try {
+      render(<LiveOrderQueueScreen />);
+      expect(await screen.findByText('Room 204')).toBeInTheDocument();
+      offline = true;
+      await act(async () => polling.tick());
+      expect(await screen.findByText(/Live queue may be out of date/)).toBeInTheDocument();
+      expect(screen.getByText('Room 204')).toBeInTheDocument();
+      expect(screen.getByText('Updates delayed')).toBeInTheDocument();
+      offline = false;
+      await act(async () => polling.tick());
+      await waitFor(() => expect(screen.queryByText('Updates delayed')).not.toBeInTheDocument());
+      expect(screen.getByText('Live orders')).toBeInTheDocument();
+    } finally {
+      polling.restore();
+    }
+  });
+
+  it('keeps an open allergy acknowledgement dialog untouched during polling', async () => {
+    const calls: string[] = [];
+    globalThis.fetch = jest.fn(async (input: RequestInfo | URL) => {
+      calls.push(String(input));
+      if (String(input) === '/api/kms/orders') return jsonResponse({ items: [order], total: 1 });
+      return jsonResponse({
+        orderId: order.orderId,
+        acknowledgementRequired: true,
+        acknowledged: false,
+        warnings: { allergyNote: 'No peanuts', itemAllergens: ['Peanuts'], dietaryLabels: [] },
+      });
+    }) as typeof fetch;
+    const polling = captureQueuePolling();
+    try {
+      render(<LiveOrderQueueScreen />);
+      fireEvent.click(await screen.findByRole('button', { name: 'Start preparation' }));
+      expect(
+        await screen.findByText('Allergy & Dietary Acknowledgement Required'),
+      ).toBeInTheDocument();
+      await act(async () => polling.tick());
+      expect(calls.filter((path) => path === '/api/kms/orders')).toHaveLength(1);
+      expect(screen.getByRole('checkbox')).not.toBeChecked();
+    } finally {
+      polling.restore();
+    }
+  });
+
+  it('does not start a second poll while the first background request is pending', async () => {
+    const pending = { resolve: undefined as ((response: Response) => void) | undefined };
+    let queueCalls = 0;
+    globalThis.fetch = jest.fn((input: RequestInfo | URL) => {
+      if (String(input) !== '/api/kms/orders') throw new Error('Unexpected URL');
+      queueCalls += 1;
+      if (queueCalls === 1) return Promise.resolve(jsonResponse({ items: [order], total: 1 }));
+      return new Promise<Response>((resolve) => {
+        pending.resolve = resolve;
+      });
+    }) as typeof fetch;
+    const polling = captureQueuePolling();
+    try {
+      render(<LiveOrderQueueScreen />);
+      expect(await screen.findByText('Room 204')).toBeInTheDocument();
+      await act(async () => polling.tick());
+      await act(async () => polling.tick());
+      expect(queueCalls).toBe(2);
+      await act(async () => {
+        pending.resolve?.(jsonResponse({ items: [order], total: 1 }));
+      });
+    } finally {
+      polling.restore();
+    }
+  });
+
+  it('allows manual refresh to update the existing board without navigation', async () => {
+    const newOrder = {
+      ...order,
+      orderId: '66666666-6666-4666-8666-666666666666',
+      roomNumber: '312',
+    };
+    let items = [order];
+    globalThis.fetch = jest.fn(async () => jsonResponse({ items, total: items.length }));
+    const polling = captureQueuePolling();
+    try {
+      render(<LiveOrderQueueScreen />);
+      expect(await screen.findByText('Room 204')).toBeInTheDocument();
+      items = [order, newOrder];
+      fireEvent.click(screen.getByRole('button', { name: 'Refresh queue' }));
+      expect(await screen.findByText('Room 312')).toBeInTheDocument();
+      expect(screen.getByText('Live orders')).toBeInTheDocument();
+    } finally {
+      polling.restore();
+    }
+  });
+
+  it('aborts a pending GET when the queue page is unmounted', async () => {
+    let observedSignal: AbortSignal | undefined;
+    globalThis.fetch = jest.fn((_input: RequestInfo | URL, options?: RequestInit) => {
+      observedSignal = options?.signal as AbortSignal | undefined;
+      return new Promise<Response>((_resolve, reject) => {
+        observedSignal?.addEventListener('abort', () => reject(new Error('aborted')), {
+          once: true,
+        });
+      });
+    }) as typeof fetch;
+    const polling = captureQueuePolling();
+    try {
+      const page = render(<LiveOrderQueueScreen />);
+      await waitFor(() => expect(observedSignal).toBeDefined());
+      page.unmount();
+      expect(observedSignal?.aborted).toBe(true);
+    } finally {
+      polling.restore();
+    }
+  });
+
+  it('does not continue protected reads after an expired session', async () => {
+    const calls = jest.fn(async () => jsonResponse({ error: 'Staff session expired' }, 401));
+    globalThis.fetch = calls as typeof fetch;
+    const polling = captureQueuePolling();
+    try {
+      render(<LiveOrderQueueScreen />);
+      await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/login'));
+      await act(async () => polling.tick());
+      expect(calls).toHaveBeenCalledTimes(1);
+    } finally {
+      polling.restore();
+    }
   });
 });

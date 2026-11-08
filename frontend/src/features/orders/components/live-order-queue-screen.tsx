@@ -8,6 +8,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { parseKitchenOrderDetails, type KitchenOrderDetails } from '../api/order-details.contract';
 import { getQueueOrderAgeMinutes } from '../lib/order-queue.utils';
+import { QueueRefreshCoordinator, getQueueRefreshIntervalMs } from '../lib/order-queue-sync';
 import type { KmsQueueStatus } from '../types/order-queue.types';
 import styles from './order-queue-board.module.css';
 import live from './live-order-queue-screen.module.css';
@@ -51,7 +52,14 @@ function parseQueue(response: unknown): KitchenOrderDetails[] {
   ) {
     throw new Error('Invalid live Order Queue response');
   }
-  return response.items.map(parseKitchenOrderDetails);
+  // The queue is keyed by full UUID, never by the shortened display reference.
+  // A malformed duplicate cannot produce two actionable cards.
+  const unique = new Map<string, KitchenOrderDetails>();
+  for (const raw of response.items) {
+    const order = parseKitchenOrderDetails(raw);
+    if (STATUSES.includes(order.status as KmsQueueStatus)) unique.set(order.orderId, order);
+  }
+  return [...unique.values()];
 }
 
 function parseSafety(response: unknown): SafetyInfo {
@@ -72,33 +80,52 @@ function parseSafety(response: unknown): SafetyInfo {
 async function fetchApi(
   path: string,
   action?: 'acknowledge' | 'start' | 'ready',
+  signal?: AbortSignal,
 ): Promise<unknown> {
-  const response = await fetch(path, {
-    method: action ? 'POST' : 'GET',
-    ...(action
-      ? {
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action }),
-        }
-      : {}),
-    cache: 'no-store',
-    credentials: 'same-origin',
-  });
-  if (response.status === 401) {
-    throw new SessionExpiredError('Staff session expired. Sign in again.');
-  }
-  if (!response.ok) {
-    let message = `Kitchen service request failed (${response.status})`;
-    try {
-      const body: unknown = await response.json();
-      if (body && typeof body === 'object' && 'error' in body && typeof body.error === 'string')
-        message = body.error;
-    } catch {
-      /* Use status as safe fallback. */
+  // All browser reads have a finite deadline. The server BFF independently
+  // times out its backend call; this also covers a lost browser connection.
+  const controller = new AbortController();
+  const forwardAbort = () => controller.abort();
+  if (signal?.aborted) controller.abort();
+  else signal?.addEventListener('abort', forwardAbort, { once: true });
+  const timeout = window.setTimeout(() => controller.abort(), 12_000);
+  try {
+    const response = await fetch(path, {
+      method: action ? 'POST' : 'GET',
+      ...(action
+        ? {
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action }),
+          }
+        : {}),
+      cache: 'no-store',
+      credentials: 'same-origin',
+      signal: action ? signal : controller.signal,
+    });
+    if (response.status === 401) {
+      throw new SessionExpiredError('Staff session expired. Sign in again.');
     }
-    throw new Error(message);
+    if (!response.ok) {
+      let message = `Kitchen service request failed (${response.status})`;
+      try {
+        const body: unknown = await response.json();
+        if (body && typeof body === 'object' && 'error' in body && typeof body.error === 'string')
+          message = body.error;
+      } catch {
+        /* Use status as safe fallback. */
+      }
+      throw new Error(message);
+    }
+    return (await response.json()) as unknown;
+  } catch (cause) {
+    if (controller.signal.aborted && !signal?.aborted && !action) {
+      throw new Error('Kitchen queue request timed out. Retrying automatically.');
+    }
+    throw cause;
+  } finally {
+    window.clearTimeout(timeout);
+    signal?.removeEventListener('abort', forwardAbort);
   }
-  return (await response.json()) as unknown;
 }
 
 function statusOrders(orders: readonly KitchenOrderDetails[], status: KmsQueueStatus) {
@@ -111,7 +138,7 @@ function statusOrders(orders: readonly KitchenOrderDetails[], status: KmsQueueSt
 }
 
 export function LiveOrderQueueScreen() {
-  const router = useRouter();
+  const { push } = useRouter();
   const [orders, setOrders] = useState<KitchenOrderDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetching, setFetching] = useState(false);
@@ -123,35 +150,74 @@ export function LiveOrderQueueScreen() {
   const [acknowledgedChecked, setAcknowledgedChecked] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
   const busyRef = useRef(false);
+  const modalOpenRef = useRef(false);
+  const mountedRef = useRef(false);
+  const queueGateRef = useRef<QueueRefreshCoordinator<KitchenOrderDetails[]> | null>(null);
+  const [queueStale, setQueueStale] = useState(false);
 
   const requestApi = useCallback(
-    async (path: string, action?: 'acknowledge' | 'start' | 'ready') => {
+    async (path: string, action?: 'acknowledge' | 'start' | 'ready', signal?: AbortSignal) => {
       try {
-        return await fetchApi(path, action);
+        return await fetchApi(path, action, signal);
       } catch (cause) {
-        if (cause instanceof SessionExpiredError) router.push('/login');
+        if (cause instanceof SessionExpiredError) {
+          // A session-expiry response ends ALL future background polling immediately.
+          queueGateRef.current?.expire();
+          push('/login');
+        }
         throw cause;
       }
     },
-    [router],
+    [push],
   );
 
-  const refreshQueue = useCallback(async () => {
-    setFetching(true);
-    try {
-      const result = await requestApi('/api/kms/orders');
-      setOrders(parseQueue(result));
-      setError(null);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Unable to load the live Order Queue');
-    } finally {
-      setFetching(false);
-      setLoading(false);
-    }
-  }, [requestApi]);
+  const refreshQueue = useCallback(
+    async (mode: 'initial' | 'poll' | 'manual' | 'after-action' = 'manual') => {
+      const gate = queueGateRef.current;
+      if (!gate || gate.isStopped) return;
+      if (mode === 'poll' && (busyRef.current || modalOpenRef.current)) return;
+      if (mode === 'manual' && (busyRef.current || modalOpenRef.current)) return;
 
-  // Automatically clear a success notice after 10 seconds; replacing or closing
-  // the notice cancels the earlier timer to avoid clearing a newer message.
+      if (gate.isPending) {
+        if (mode === 'after-action') {
+          // Invalidate an older read; it may not overwrite the confirmed mutation.
+          gate.cancelPending();
+        } else if (mode === 'manual') {
+          // Join the existing read rather than issuing a duplicate request.
+          setFetching(true);
+          return;
+        } else {
+          return;
+        }
+      }
+
+      // No visible loading overlay or flicker during routine background refresh.
+      if (mode === 'manual' || mode === 'after-action') setFetching(true);
+      await gate.run(
+        async (signal) => parseQueue(await requestApi('/api/kms/orders', undefined, signal)),
+        (nextOrders) => {
+          setOrders((previous) =>
+            JSON.stringify(previous) === JSON.stringify(nextOrders) ? previous : nextOrders,
+          );
+          setError(null);
+          setQueueStale(false);
+          setLoading(false);
+        },
+        (cause) => {
+          setError(cause instanceof Error ? cause.message : 'Unable to load the live Order Queue');
+          setQueueStale(true);
+          setLoading(false);
+        },
+        () => {
+          setFetching(false);
+          setLoading(false);
+        },
+      );
+    },
+    [requestApi],
+  );
+
+  // Five-second notice timeout is unchanged from the completed DDP-262 branch.
   useEffect(() => {
     if (!notice) return;
     const timer = window.setTimeout(() => setNotice(null), 5_000);
@@ -159,30 +225,57 @@ export function LiveOrderQueueScreen() {
   }, [notice]);
 
   useEffect(() => {
-    // Schedule the initial load outside the synchronous effect body.
-    const initialLoad = window.setTimeout(() => {
-      void refreshQueue();
-    }, 0);
-    return () => window.clearTimeout(initialLoad);
+    mountedRef.current = true;
+    const gate = new QueueRefreshCoordinator<KitchenOrderDetails[]>();
+    queueGateRef.current = gate;
+
+    // Avoid state-setting synchronously inside React's effect body.
+    const initialLoad = window.setTimeout(() => void refreshQueue('initial'), 0);
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === 'hidden') return;
+      void refreshQueue('poll');
+    }, getQueueRefreshIntervalMs());
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') void refreshQueue('poll');
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      mountedRef.current = false;
+      window.clearTimeout(initialLoad);
+      window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      gate.stop();
+      if (queueGateRef.current === gate) queueGateRef.current = null;
+    };
   }, [refreshQueue]);
+
+  // An order mutation must take precedence over any older in-flight queue read.
+  function pauseQueueReadsForAction() {
+    queueGateRef.current?.cancelPending();
+    setFetching(false);
+  }
 
   async function applyAction(orderId: string, action: 'start' | 'ready') {
     await requestApi(`/api/kms/orders/${encodeURIComponent(orderId)}`, action);
-    await refreshQueue();
+    await refreshQueue('after-action');
+    if (!mountedRef.current) return;
     setNotice(action === 'start' ? 'Preparation started and saved.' : 'Order marked ready.');
   }
 
   async function handleStart(order: KitchenOrderDetails) {
     if (busyRef.current) return;
     busyRef.current = true;
+    pauseQueueReadsForAction();
     setBusyOrderId(order.orderId);
     setNotice(null);
-    setError(null);
+    if (!queueStale) setError(null);
     try {
       const safety = parseSafety(
         await requestApi(`/api/kms/orders/${encodeURIComponent(order.orderId)}`),
       );
       if (safety.acknowledgementRequired && !safety.acknowledged) {
+        modalOpenRef.current = true;
         setModalOrder(order);
         setModalSafety(safety);
         setAcknowledgedChecked(false);
@@ -192,6 +285,7 @@ export function LiveOrderQueueScreen() {
       }
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Unable to start preparation');
+      setQueueStale(true);
     } finally {
       busyRef.current = false;
       setBusyOrderId(null);
@@ -201,13 +295,15 @@ export function LiveOrderQueueScreen() {
   async function handleReady(order: KitchenOrderDetails) {
     if (busyRef.current) return;
     busyRef.current = true;
+    pauseQueueReadsForAction();
     setBusyOrderId(order.orderId);
     setNotice(null);
-    setError(null);
+    if (!queueStale) setError(null);
     try {
       await applyAction(order.orderId, 'ready');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Unable to mark the order ready');
+      setQueueStale(true);
     } finally {
       busyRef.current = false;
       setBusyOrderId(null);
@@ -217,11 +313,13 @@ export function LiveOrderQueueScreen() {
   async function handleAcknowledgeAndStart() {
     if (!modalOrder || !modalSafety || !acknowledgedChecked || busyRef.current) return;
     busyRef.current = true;
+    pauseQueueReadsForAction();
     setBusyOrderId(modalOrder.orderId);
     setModalError(null);
     try {
       await requestApi(`/api/kms/orders/${encodeURIComponent(modalOrder.orderId)}`, 'acknowledge');
       await applyAction(modalOrder.orderId, 'start');
+      modalOpenRef.current = false;
       setModalOrder(null);
       setModalSafety(null);
       setAcknowledgedChecked(false);
@@ -237,6 +335,7 @@ export function LiveOrderQueueScreen() {
 
   function closeModal() {
     if (busyRef.current) return;
+    modalOpenRef.current = false;
     setModalOrder(null);
     setModalSafety(null);
     setAcknowledgedChecked(false);
@@ -262,14 +361,14 @@ export function LiveOrderQueueScreen() {
       {error ? (
         <Alert
           className={live.alert}
-          type="error"
+          type={queueStale ? 'warning' : 'error'}
           showIcon
-          title={error}
+          title={queueStale ? `Live queue may be out of date. ${error}` : error}
           action={
             <Button
               size="small"
               onClick={() => {
-                void refreshQueue();
+                void refreshQueue('manual');
               }}
             >
               Retry
@@ -291,14 +390,16 @@ export function LiveOrderQueueScreen() {
               </div>
             ))}
             <div className={live.summaryActions}>
-              <span className={live.liveBadge}>Live orders</span>
+              <span className={queueStale ? live.delayedBadge : live.liveBadge}>
+                {queueStale ? 'Updates delayed' : 'Live orders'}
+              </span>
               <Button
                 type="text"
                 size="small"
                 className={live.refreshButton}
                 icon={<ReloadOutlined aria-hidden="true" />}
                 onClick={() => {
-                  void refreshQueue();
+                  void refreshQueue('manual');
                 }}
                 loading={fetching}
                 disabled={fetching || busyOrderId !== null}
