@@ -14,6 +14,8 @@ import { FoodOrder } from './entities/food-order.entity.js';
 import { OrdersController } from './orders.controller.js';
 import { OrdersCreateController } from './orders-create.controller.js';
 import { OrdersCreateService } from './orders-create.service.js';
+import { KotPreviewController } from './kot-preview.controller.js';
+import { KotPreviewService } from './kot-preview.service.js';
 import { OrdersService } from './orders.service.js';
 import { OrdersTransitionController } from './orders-transition.controller.js';
 import { OrdersTransitionService } from './orders-transition.service.js';
@@ -32,12 +34,14 @@ import { FoodOrderRepository } from './repositories/food-order.repository.js';
   ],
   controllers: [
     OrdersController,
+    KotPreviewController,
     OrdersCreateController,
     AllergySafetyController,
     OrdersTransitionController,
   ],
   providers: [
     OrdersService,
+    KotPreviewService,
     AllergySafetyService,
     OrdersTransitionService,
     OrdersCreateService,

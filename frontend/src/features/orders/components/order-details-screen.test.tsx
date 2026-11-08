@@ -1,6 +1,12 @@
 import { render, screen, within } from '@testing-library/react';
 
 import type { KitchenOrderDetails } from '../api/order-details.contract';
+const mockPush = jest.fn();
+const mockRefresh = jest.fn();
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: mockPush, refresh: mockRefresh }),
+}));
+
 import { OrderDetailsScreen } from './order-details-screen';
 
 const order: KitchenOrderDetails = {
@@ -59,10 +65,8 @@ describe('DDP-259 Order Details workspace', () => {
     expect(within(timeline).getByText('Order placed')).toBeInTheDocument();
     expect(within(timeline).getByText('In preparation')).toBeInTheDocument();
     expect(within(timeline).getByText('Ready for delivery')).toBeInTheDocument();
-    expect(
-      within(timeline).getByRole('button', { name: /Acknowledge allergy & start prep/i }),
-    ).toBeDisabled();
-    expect(within(timeline).getByRole('button', { name: /Print \/ reprint KOT/i })).toBeDisabled();
+    expect(within(timeline).getByRole('button', { name: 'Start preparation' })).toBeEnabled();
+    expect(within(timeline).getByRole('button', { name: /Print \/ reprint/i })).toBeDisabled();
     expect(screen.queryByText('KOT printed')).not.toBeInTheDocument();
   });
 
@@ -80,7 +84,7 @@ describe('DDP-259 Order Details workspace', () => {
     const timeline = screen.getByRole('region', { name: 'Order timeline and actions' });
     expect(within(timeline).getByText('In preparation')).toBeInTheDocument();
     expect(within(timeline).getByText('Current status')).toBeInTheDocument();
-    expect(within(timeline).getByRole('button', { name: 'Mark ready' })).toBeDisabled();
+    expect(within(timeline).getByRole('button', { name: 'Mark ready' })).toBeEnabled();
   });
 
   it('does not show an invalid next action for cancelled orders', () => {
