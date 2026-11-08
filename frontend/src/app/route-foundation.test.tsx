@@ -49,12 +49,14 @@ describe('KMS route foundation', () => {
     expect(screen.getByText('Demonstration data — not live')).toBeInTheDocument();
   });
 
-  it('protects the Order Details placeholder with a staff session', async () => {
-    const page = await OrderDetailsPage({ params: Promise.resolve({ id: 'order-123' }) });
+  it('protects Order Details and rejects invalid order IDs', async () => {
+    await expect(
+      OrderDetailsPage({
+        params: Promise.resolve({ id: 'order-123' }),
+      }),
+    ).rejects.toThrow('NEXT_HTTP_ERROR_FALLBACK;404');
+
     expect(requireKmsWorkspaceSession).toHaveBeenCalledTimes(1);
-    render(page);
-    expect(screen.getByRole('heading', { name: 'Order Details' })).toBeInTheDocument();
-    expect(screen.getByText('Order ID: order-123')).toBeInTheDocument();
   });
 
   it('renders Menu Management after manager authorization', async () => {
