@@ -567,12 +567,13 @@ export function OrderingWindowsScreen({
                 <li key={entry.key} className={styles.timelineRow}>
                   <span className={styles.timelineTime}>{entry.time}</span>
                   <span
-                    className={`${styles.timelineBar} ${entry.kind === 'gap'
-                      ? styles.timelineGap
-                      : entry.open
-                        ? styles.timelineActive
-                        : ''
-                      }`}
+                    className={`${styles.timelineBar} ${
+                      entry.kind === 'gap'
+                        ? styles.timelineGap
+                        : entry.open
+                          ? styles.timelineActive
+                          : ''
+                    }`}
                   >
                     {entry.label}
                   </span>
