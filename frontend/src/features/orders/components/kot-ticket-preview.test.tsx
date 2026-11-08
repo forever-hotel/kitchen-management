@@ -1,7 +1,28 @@
 import { render, screen, within } from '@testing-library/react';
 
+const mockRouter = { push: jest.fn() };
+
+jest.mock('next/navigation', () => ({
+  useRouter: () => mockRouter,
+}));
+
 import type { KotPreview } from '../api/kot-preview.contract';
 import { KotTicketPreview } from './kot-ticket-preview';
+
+const originalFetch = globalThis.fetch;
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  globalThis.fetch = jest.fn(async () => ({
+    ok: true,
+    status: 200,
+    json: async () => [],
+  })) as unknown as typeof fetch;
+});
+
+afterEach(() => {
+  globalThis.fetch = originalFetch;
+});
 
 const ticket: KotPreview = {
   mode: 'PREVIEW_ONLY',
@@ -28,7 +49,7 @@ const ticket: KotPreview = {
 };
 
 describe('DDP-265 KOT ticket preview', () => {
-  it('shows each item snapshot, quantity, special instruction and allergy note', () => {
+  it('shows each item snapshot, quantity, special instruction and allergy note', async () => {
     render(<KotTicketPreview ticket={ticket} />);
     expect(screen.getByRole('heading', { name: 'Kitchen Order Ticket' })).toBeInTheDocument();
     expect(screen.getByText('Vegetable rice')).toBeInTheDocument();
@@ -38,24 +59,25 @@ describe('DDP-265 KOT ticket preview', () => {
     expect(within(warning).getByText(/No peanuts/)).toBeInTheDocument();
     expect(screen.getByText(/204/)).toBeInTheDocument();
     expect(screen.getByText(/11111111-1111-4111-8111-111111111111/)).toBeInTheDocument();
+    await screen.findByText('No print requests recorded yet.');
   });
 
-  it('never claims printing succeeded and disables unsupported job requests', () => {
+  it('shows request controls without claiming printing succeeded', async () => {
     render(<KotTicketPreview ticket={ticket} />);
     expect(screen.getByText('PREVIEW ONLY')).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /Request KOT print job unavailable/i }),
-    ).toBeDisabled();
+    expect(await screen.findByText('No print requests recorded yet.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Record print request/i })).toBeEnabled();
     expect(screen.queryByText('Printed successfully')).not.toBeInTheDocument();
   });
 
-  it('does not insert fabricated allergy or item data', () => {
+  it('does not insert fabricated allergy or item data', async () => {
     render(<KotTicketPreview ticket={{ ...ticket, items: [], allergyNote: null }} />);
     expect(screen.getByText(/No stored items are available/i)).toBeInTheDocument();
     expect(screen.getByText(/Do not assume allergen-free preparation/i)).toBeInTheDocument();
+    await screen.findByText('No print requests recorded yet.');
   });
 
-  it('renders special instructions as text, never as executable markup', () => {
+  it('renders special instructions as text, never as executable markup', async () => {
     render(
       <KotTicketPreview
         ticket={{
@@ -68,5 +90,6 @@ describe('DDP-265 KOT ticket preview', () => {
     expect(
       screen.getByRole('region', { name: 'Kitchen order ticket preview' }).querySelector('script'),
     ).toBeNull();
+    await screen.findByText('No print requests recorded yet.');
   });
 });

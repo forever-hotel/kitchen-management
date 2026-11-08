@@ -294,7 +294,7 @@ export function OrderDetailsScreen({ order }: OrderDetailsScreenProps) {
       <footer className={styles.workspaceFooter}>
         <p>
           Manage preparation from this page or the live Order Queue. Ticket preview uses saved order
-          data; print-job tracking is not yet available.
+          data; persisted print-request history is available on the ticket page.
         </p>
         <Link href="/order-queue" className={styles.backLink}>
           Back to Order Queue

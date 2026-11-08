@@ -16,7 +16,9 @@ import { OrdersController } from './orders.controller.js';
 import { OrdersCreateController } from './orders-create.controller.js';
 import { OrdersCreateService } from './orders-create.service.js';
 import { KotPreviewController } from './kot-preview.controller.js';
+import { KotPrintJobsController } from './kot-print-jobs.controller.js';
 import { KotPreviewService } from './kot-preview.service.js';
+import { KotPrintJobsService } from './kot-print-jobs.service.js';
 import { OrdersService } from './orders.service.js';
 import { OrdersTransitionController } from './orders-transition.controller.js';
 import { OrdersTransitionService } from './orders-transition.service.js';
@@ -38,6 +40,7 @@ import { KotPrintRepository } from './repositories/kot-print.repository.js';
   controllers: [
     OrdersController,
     KotPreviewController,
+    KotPrintJobsController,
     OrdersCreateController,
     AllergySafetyController,
     OrdersTransitionController,
@@ -45,6 +48,7 @@ import { KotPrintRepository } from './repositories/kot-print.repository.js';
   providers: [
     OrdersService,
     KotPreviewService,
+    KotPrintJobsService,
     AllergySafetyService,
     OrdersTransitionService,
     OrdersCreateService,

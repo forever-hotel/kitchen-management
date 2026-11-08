@@ -1,5 +1,6 @@
 import type { KotPreview } from '../api/kot-preview.contract';
 
+import { KotPrintJobActions } from './kot-print-job-actions';
 import styles from './kot-ticket-preview.module.css';
 
 const formatHotelDate = new Intl.DateTimeFormat('en-LK', {
@@ -21,7 +22,7 @@ export function KotTicketPreview({ ticket }: { ticket: KotPreview }) {
       </header>
 
       <div className={styles.notice} role="note">
-        Order-content preview only. No print job has been registered or physically confirmed.
+        This is the order-content preview, not proof of physical printing.
       </div>
 
       <dl className={styles.summary}>
@@ -89,18 +90,7 @@ export function KotTicketPreview({ ticket }: { ticket: KotPreview }) {
             )}
           </section>
 
-          <section aria-labelledby="kot-printing-title" className={styles.pending}>
-            <h2 id="kot-printing-title" className={styles.sectionHeading}>
-              Print-job tracking
-            </h2>
-            <p>
-              Print requests and recorded job status will be available after the approved print-job
-              persistence and printing integration is implemented.
-            </p>
-            <button type="button" disabled aria-label="Request KOT print job unavailable">
-              Request print job — unavailable
-            </button>
-          </section>
+          <KotPrintJobActions orderId={ticket.orderId} />
         </div>
       </div>
     </section>
