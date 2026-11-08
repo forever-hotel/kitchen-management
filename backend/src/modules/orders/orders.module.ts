@@ -15,6 +15,8 @@ import { OrdersController } from './orders.controller.js';
 import { OrdersCreateController } from './orders-create.controller.js';
 import { OrdersCreateService } from './orders-create.service.js';
 import { OrdersService } from './orders.service.js';
+import { OrdersTransitionController } from './orders-transition.controller.js';
+import { OrdersTransitionService } from './orders-transition.service.js';
 import { FoodOrderItemRepository } from './repositories/food-order-item.repository.js';
 import { FoodOrderRepository } from './repositories/food-order.repository.js';
 
@@ -32,10 +34,12 @@ import { FoodOrderRepository } from './repositories/food-order.repository.js';
     OrdersController,
     OrdersCreateController,
     AllergySafetyController,
+    OrdersTransitionController,
   ],
   providers: [
     OrdersService,
     AllergySafetyService,
+    OrdersTransitionService,
     OrdersCreateService,
     KmsOrderIntakeGuard,
     FoodOrderRepository,
