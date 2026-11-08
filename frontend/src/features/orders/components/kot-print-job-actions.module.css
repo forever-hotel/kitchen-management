@@ -1,0 +1,98 @@
+.area {
+  padding-top: 9px;
+  border-top: 1px solid #d8e0e5;
+  min-width: 0;
+}
+.area h2 {
+  color: #1a3c5e;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.065em;
+  margin: 12px 0 10px;
+}
+.note {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #5a5650;
+  margin: 0 0 10px;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+.area button {
+  border: 1px solid #aebdc9;
+  background: white;
+  color: #1a3c5e;
+  border-radius: 6px;
+  padding: 9px 11px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 12px;
+}
+.area button:hover:not(:disabled),
+.area button:focus-visible {
+  border-color: #d7a33b;
+  outline-offset: 2px;
+}
+.area button.primary {
+  background: #1a3c5e;
+  color: white;
+}
+.area button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+.history {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.job {
+  border: 1px solid #d8e0e5;
+  border-radius: 6px;
+  padding: 11px;
+  background: #fff;
+}
+.jobTop {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 7px;
+  font-size: 12px;
+}
+.jobTop strong {
+  color: #1a3c5e;
+}
+.jobTop time {
+  color: #5a5650;
+}
+.identifier {
+  margin: 7px 0;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+  color: #5a5650;
+}
+.error,
+.notice {
+  border: 1px solid #b42328;
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 12px;
+  margin: 8px 0;
+}
+.error {
+  color: #a21f24;
+  background: #fff5f5;
+}
+.notice {
+  color: #1a3c5e;
+  background: #edf4f9;
+  border-color: #aebdc9;
+}

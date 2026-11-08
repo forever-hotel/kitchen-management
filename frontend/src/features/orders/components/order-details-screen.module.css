@@ -642,3 +642,31 @@
     width: 100%;
   }
 }
+
+/* DDP-265: clear navigation affordance, separate from disabled print action. */
+.kotPreviewLink {
+  display: inline-flex;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 10px 12px;
+  margin: 4px 0 12px;
+  background: #1a3c5e;
+  border: 1px solid #1a3c5e;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 750;
+  text-decoration: none;
+  text-align: center;
+}
+.kotPreviewLink:hover {
+  background: #2e5f8a;
+  color: #fff;
+}
+.kotPreviewLink:focus-visible {
+  outline: 2px solid #c9920d;
+  outline-offset: 3px;
+}

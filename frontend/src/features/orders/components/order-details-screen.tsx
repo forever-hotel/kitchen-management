@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import type { KitchenOrderDetails } from '../api/order-details.contract';
+import { OrderDetailsPreparationActions } from './order-details-preparation-actions';
 
 import styles from './order-details-screen.module.css';
 
@@ -78,18 +79,9 @@ function timelineForOrder(order: KitchenOrderDetails): TimelineStep[] {
   });
 }
 
-function nextActionLabel(order: KitchenOrderDetails): string | null {
-  if (order.status === 'PLACED') {
-    return order.allergyNote?.trim() ? 'Acknowledge allergy & start prep' : 'Start preparation';
-  }
-  if (order.status === 'IN_PREPARATION') return 'Mark ready';
-  return null;
-}
-
 export function OrderDetailsScreen({ order }: OrderDetailsScreenProps) {
   const portions = order.items.reduce((count, item) => count + item.quantity, 0);
   const allergyNote = order.allergyNote?.trim();
-  const nextAction = nextActionLabel(order);
   const timeline = timelineForOrder(order);
 
   return (
@@ -121,9 +113,7 @@ export function OrderDetailsScreen({ order }: OrderDetailsScreenProps) {
 
         <div className={styles.sidebarHelp}>
           <strong>Active order queue</strong>
-          <p>
-            The full queue board is still in preview. Live order lists will be connected in DDP-262.
-          </p>
+          <p>The live Order Queue shows saved orders and refreshes automatically.</p>
           <Link href="/order-queue" className={styles.sidebarLink}>
             Open Order Queue
           </Link>
@@ -239,8 +229,8 @@ export function OrderDetailsScreen({ order }: OrderDetailsScreenProps) {
               <h3>⚠ Allergy warning — review before preparation</h3>
               <p className={styles.allergyBody}>{allergyNote}</p>
               <p className={styles.allergyHint}>
-                Allergy acknowledgement must be completed before preparation. The workflow is
-                planned for DDP-260.
+                Review current allergy and dietary warnings before preparation. Confirm warnings
+                when required.
               </p>
             </div>
           ) : (
@@ -250,8 +240,8 @@ export function OrderDetailsScreen({ order }: OrderDetailsScreenProps) {
             </div>
           )}
           <p className={styles.dietaryNotice}>
-            Item-level dietary and allergen labels will appear when supported by the approved API.
-            Never assume an item is allergen-free from missing information.
+            The safety check uses current menu allergen and dietary associations. Missing warnings
+            do not guarantee an allergen-free meal.
           </p>
         </section>
       </div>
@@ -284,40 +274,27 @@ export function OrderDetailsScreen({ order }: OrderDetailsScreenProps) {
 
         <section className={styles.sidebarCard} aria-labelledby="kot-card-heading">
           <h2 id="kot-card-heading">Kitchen order ticket (KOT)</h2>
-          <p>Ticket preview and print-job status are not available yet.</p>
+          <p>View the kitchen preparation ticket for this saved order.</p>
+          <Link
+            href={`/order-queue/${encodeURIComponent(order.orderId)}/kot-preview`}
+            className={styles.kotPreviewLink}
+          >
+            <span aria-hidden="true">↗</span> Preview kitchen ticket
+          </Link>
           <button className={styles.disabledButton} type="button" disabled>
-            Print / reprint KOT — DDP-265
+            Print / reprint (coming soon)
           </button>
         </section>
-
         <section className={styles.sidebarCard} aria-labelledby="prep-actions-heading">
           <h2 id="prep-actions-heading">Preparation actions</h2>
-          {nextAction ? (
-            <>
-              <p>
-                Order status updates are not available until the safety and lifecycle APIs are
-                ready.
-              </p>
-              <button className={styles.disabledButton} type="button" disabled>
-                {nextAction}
-              </button>
-            </>
-          ) : (
-            <p>
-              {order.status === 'READY'
-                ? 'Ready for delivery. Assignment and handoff are handled in a later workflow.'
-                : order.status === 'DELIVERED'
-                  ? 'This order is marked as delivered.'
-                  : 'This order has been cancelled.'}
-            </p>
-          )}
+          <OrderDetailsPreparationActions orderId={order.orderId} status={order.status} />
         </section>
       </aside>
 
       <footer className={styles.workspaceFooter}>
         <p>
-          Read-only order details. Preparation, acknowledgement and ticket actions will be enabled
-          with their respective backend workflows.
+          Manage preparation from this page or the live Order Queue. Ticket preview uses saved order
+          data; persisted print-request history is available on the ticket page.
         </p>
         <Link href="/order-queue" className={styles.backLink}>
           Back to Order Queue
