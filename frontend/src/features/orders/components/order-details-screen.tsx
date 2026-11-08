@@ -281,9 +281,12 @@ export function OrderDetailsScreen({ order }: OrderDetailsScreenProps) {
           >
             <span aria-hidden="true">↗</span> Preview kitchen ticket
           </Link>
-          <button className={styles.disabledButton} type="button" disabled>
-            Print / reprint (coming soon)
-          </button>
+          <Link
+            href={`/order-queue/${encodeURIComponent(order.orderId)}/kot-preview#kot-print-jobs-heading`}
+            className={`${styles.kotPreviewLink} ${styles.kotManageLink}`}
+          >
+            Manage print requests
+          </Link>
         </section>
         <section className={styles.sidebarCard} aria-labelledby="prep-actions-heading">
           <h2 id="prep-actions-heading">Preparation actions</h2>
