@@ -66,7 +66,10 @@ describe('DDP-259 Order Details workspace', () => {
     expect(within(timeline).getByText('In preparation')).toBeInTheDocument();
     expect(within(timeline).getByText('Ready for delivery')).toBeInTheDocument();
     expect(within(timeline).getByRole('button', { name: 'Start preparation' })).toBeEnabled();
-    expect(within(timeline).getByRole('button', { name: /Print \/ reprint/i })).toBeDisabled();
+    expect(within(timeline).getByRole('link', { name: 'Manage print requests' })).toHaveAttribute(
+      'href',
+      `/order-queue/${order.orderId}/kot-preview#kot-print-jobs-heading`,
+    );
     expect(screen.queryByText('KOT printed')).not.toBeInTheDocument();
   });
 
