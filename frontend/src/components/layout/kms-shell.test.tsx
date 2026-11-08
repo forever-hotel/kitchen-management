@@ -1,135 +1,87 @@
 const mockReplace = jest.fn();
 
 jest.mock('next/navigation', () => ({
-  useRouter: () => ({
-    replace: mockReplace,
-  }),
+  usePathname: () => '/order-queue',
+  useRouter: () => ({ replace: mockReplace }),
 }));
 
 import { render, screen } from '@testing-library/react';
 import { AppProviders } from '@/providers/app-providers';
 import { KmsShell } from './kms-shell';
 
-describe('KmsShell', () => {
-  it('TC-KMS-FE-004: Given KMS application content, when the shared shell renders, then the application heading and main landmark are present', () => {
-    // Arrange / Act
-    render(
-      <AppProviders>
-        <KmsShell>
-          <p>Foundation content</p>
-        </KmsShell>
-      </AppProviders>,
-    );
+function renderShell(role?: 'KITCHEN_MANAGER' | 'KITCHEN_STAFF') {
+  return render(
+    <AppProviders>
+      <KmsShell role={role}>
+        <p>Kitchen content</p>
+      </KmsShell>
+    </AppProviders>,
+  );
+}
 
-    // Assert
+describe('KMS authenticated and responsive shell', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('renders the application heading, skip link and main landmark', () => {
+    renderShell();
     expect(
-      screen.getByRole('heading', {
-        level: 1,
-        name: 'Kitchen Management System',
-      }),
+      screen.getByRole('heading', { level: 1, name: 'Kitchen Management System' }),
     ).toBeInTheDocument();
-
-    expect(screen.getByRole('main')).toBeInTheDocument();
-    expect(screen.getByText('Foundation content')).toBeInTheDocument();
-  });
-
-  it('TC-KMS-FE-005: Given keyboard navigation, when the shell renders, then a focusable skip link targets the main content', () => {
-    // Arrange
-    render(
-      <AppProviders>
-        <KmsShell>
-          <p>Foundation content</p>
-        </KmsShell>
-      </AppProviders>,
-    );
-
-    const skipLink = screen.getByRole('link', {
-      name: 'Skip to main content',
-    });
-
-    // Act
+    expect(screen.getByRole('main')).toHaveAttribute('id', 'main-content');
+    const skipLink = screen.getByRole('link', { name: 'Skip to main content' });
     skipLink.focus();
-
-    // Assert
     expect(skipLink).toHaveAttribute('href', '#main-content');
     expect(skipLink).toHaveFocus();
-    expect(screen.getByRole('main')).toHaveAttribute('id', 'main-content');
   });
 
-  it('TC-KMS-FE-006: Given the KMS shell, when it renders, then the shared kitchen operations footer is present', () => {
-    // Arrange / Act
-    render(
-      <AppProviders>
-        <KmsShell>
-          <p>Foundation content</p>
-        </KmsShell>
-      </AppProviders>,
-    );
-
-    // Assert
+  it('retains kitchen operations footer and hotel time', () => {
+    renderShell();
     expect(screen.getByText('Forever Hotel Kitchen Operations')).toBeInTheDocument();
+    expect(screen.getByLabelText('Current hotel time (Sri Lanka)')).toBeInTheDocument();
   });
 
-  it('TC-KMS-SF-002: kitchen manager can access all navigation links', () => {
-    render(
-      <AppProviders>
-        <KmsShell role="KITCHEN_MANAGER">
-          <p>Manager dashboard</p>
-        </KmsShell>
-      </AppProviders>,
-    );
-
-    expect(
-      screen.getByRole('navigation', {
-        name: 'Kitchen navigation',
-      }),
-    ).toBeInTheDocument();
-
+  it('shows all three pages and logout for a kitchen manager', () => {
+    renderShell('KITCHEN_MANAGER');
+    expect(screen.getByRole('navigation', { name: 'Kitchen navigation' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Order Queue' })).toHaveAttribute(
       'href',
       '/order-queue',
     );
-
     expect(screen.getByRole('link', { name: 'Menu Management' })).toHaveAttribute(
       'href',
       '/menu-management',
     );
-
     expect(screen.getByRole('link', { name: 'Time Windows' })).toHaveAttribute(
       'href',
       '/time-windows',
     );
+    expect(screen.getByRole('button', { name: 'Sign out' })).toBeInTheDocument();
   });
 
-  it('TC-KMS-SF-003: kitchen staff can only see Order Queue', () => {
-    render(
-      <AppProviders>
-        <KmsShell role="KITCHEN_STAFF">
-          <p>Kitchen staff workspace</p>
-        </KmsShell>
-      </AppProviders>,
-    );
-
+  it('shows only Order Queue and logout for kitchen staff', () => {
+    renderShell('KITCHEN_STAFF');
     expect(screen.getByRole('link', { name: 'Order Queue' })).toBeInTheDocument();
-
     expect(screen.queryByRole('link', { name: 'Menu Management' })).not.toBeInTheDocument();
-
     expect(screen.queryByRole('link', { name: 'Time Windows' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sign out' })).toBeInTheDocument();
   });
 
-  it('unauthenticated users do not see operational navigation', () => {
-    render(
-      <AppProviders>
-        <KmsShell>
-          <p>Public content</p>
-        </KmsShell>
-      </AppProviders>,
-    );
-
+  it('shows no operational navigation or logout for unauthenticated users', () => {
+    renderShell();
     expect(
-      screen.queryByRole('navigation', {
-        name: 'Kitchen navigation',
-      }),
+      screen.queryByRole('navigation', { name: 'Kitchen navigation' }),
     ).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Sign out' })).not.toBeInTheDocument();
+  });
+
+  it('marks the current page in navigation', () => {
+    renderShell('KITCHEN_MANAGER');
+    expect(screen.getByRole('link', { name: 'Order Queue' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    expect(screen.getByRole('link', { name: 'Menu Management' })).not.toHaveAttribute(
+      'aria-current',
+    );
   });
 });

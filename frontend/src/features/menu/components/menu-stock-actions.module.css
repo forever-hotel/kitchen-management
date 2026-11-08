@@ -71,15 +71,36 @@
   -webkit-text-fill-color: currentColor;
 }
 
-.stock_LOW_STOCK { color: #9b6500; }
-.stock_LOW_STOCK::before { content: '!'; }
-.stock_LOW_STOCK select { border-color: #dcae3f; background: #fff5e5; }
-.stock_UNAVAILABLE { color: #a91616; }
-.stock_UNAVAILABLE::before { content: '×'; }
-.stock_UNAVAILABLE select { border-color: #d46c6c; background: #fff0f0; }
-.stock_TEMPORARILY_DISABLED { color: #5a5650; }
-.stock_TEMPORARILY_DISABLED::before { content: '−'; }
-.stock_TEMPORARILY_DISABLED select { border-color: #ccc8bf; background: #f1f0ec; }
+.stock_LOW_STOCK {
+  color: #9b6500;
+}
+.stock_LOW_STOCK::before {
+  content: '!';
+}
+.stock_LOW_STOCK select {
+  border-color: #dcae3f;
+  background: #fff5e5;
+}
+.stock_UNAVAILABLE {
+  color: #a91616;
+}
+.stock_UNAVAILABLE::before {
+  content: '×';
+}
+.stock_UNAVAILABLE select {
+  border-color: #d46c6c;
+  background: #fff0f0;
+}
+.stock_TEMPORARILY_DISABLED {
+  color: #5a5650;
+}
+.stock_TEMPORARILY_DISABLED::before {
+  content: '−';
+}
+.stock_TEMPORARILY_DISABLED select {
+  border-color: #ccc8bf;
+  background: #f1f0ec;
+}
 
 .removeWrapper {
   width: auto;

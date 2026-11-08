@@ -14,6 +14,7 @@ import { AppProviders } from '@/providers/app-providers';
 
 import LoginPage from './(auth)/login/page';
 import MenuManagementPage from './(protected)/menu-management/page';
+import OrderDetailsPage from './(protected)/order-queue/[id]/page';
 import OrderQueuePage from './(protected)/order-queue/page';
 import TimeWindowsPage from './(protected)/time-windows/page';
 
@@ -28,51 +29,40 @@ const managerSession = {
 describe('KMS route foundation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-
     jest.mocked(requireKmsWorkspaceSession).mockResolvedValue(managerSession);
-
     jest.mocked(requireKmsManagerSession).mockResolvedValue(managerSession);
   });
 
   it('renders the public login form', () => {
     render(<LoginPage />);
-
-    expect(
-      screen.getByRole('heading', {
-        name: 'Kitchen Management Login',
-      }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Kitchen Management Login' })).toBeInTheDocument();
   });
 
-  it('renders Order Queue after staff authorization', async () => {
+  it('renders the Order Queue board after staff authorization', async () => {
     const page = await OrderQueuePage();
-
     expect(requireKmsWorkspaceSession).toHaveBeenCalledTimes(1);
-
     render(page);
+    expect(screen.getByRole('heading', { name: 'Order Queue' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'New Orders' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'In Preparation' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Ready for Delivery' })).toBeInTheDocument();
+    expect(screen.getByText('Demonstration data — not live')).toBeInTheDocument();
+  });
 
-    expect(
-      screen.getByRole('heading', {
-        name: 'Order Queue',
-      }),
-    ).toBeInTheDocument();
+  it('protects the Order Details placeholder with a staff session', async () => {
+    const page = await OrderDetailsPage({ params: Promise.resolve({ id: 'order-123' }) });
+    expect(requireKmsWorkspaceSession).toHaveBeenCalledTimes(1);
+    render(page);
+    expect(screen.getByRole('heading', { name: 'Order Details' })).toBeInTheDocument();
+    expect(screen.getByText('Order ID: order-123')).toBeInTheDocument();
   });
 
   it('renders Menu Management after manager authorization', async () => {
     const page = await MenuManagementPage();
-
     expect(requireKmsManagerSession).toHaveBeenCalledTimes(1);
-
     render(<AppProviders>{page}</AppProviders>);
-
-    expect(
-      screen.getByRole('heading', {
-        name: 'Lunch Menu',
-      }),
-    ).toBeInTheDocument();
-
+    expect(screen.getByRole('heading', { name: 'Lunch Menu' })).toBeInTheDocument();
     expect(screen.getByText('Chicken Fried Rice')).toBeInTheDocument();
-
     expect(
       screen.getByText('Fixture preview — sample data, not live menu records.'),
     ).toBeInTheDocument();
@@ -80,29 +70,11 @@ describe('KMS route foundation', () => {
 
   it('renders Time Windows after manager authorization', async () => {
     const page = await TimeWindowsPage();
-
     expect(requireKmsManagerSession).toHaveBeenCalledTimes(1);
-
     render(<AppProviders>{page}</AppProviders>);
-
-    expect(
-      screen.getByRole('heading', {
-        name: 'Ordering Time Windows',
-      }),
-    ).toBeInTheDocument();
-
+    expect(screen.getByRole('heading', { name: 'Ordering Time Windows' })).toBeInTheDocument();
     expect(screen.getByText('Ordering windows: 4.')).toBeInTheDocument();
-
-    expect(
-      screen.getByRole('article', {
-        name: 'Breakfast ordering window',
-      }),
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByRole('article', {
-        name: 'Lunch ordering window',
-      }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('article', { name: 'Breakfast ordering window' })).toBeInTheDocument();
+    expect(screen.getByRole('article', { name: 'Lunch ordering window' })).toBeInTheDocument();
   });
 });

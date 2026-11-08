@@ -86,7 +86,9 @@ export function MenuStockActions({
       try {
         await onReload();
       } catch {
-        setError('Status saved, but the menu refresh failed. Retry the menu reload, not the update.');
+        setError(
+          'Status saved, but the menu refresh failed. Retry the menu reload, not the update.',
+        );
       }
     } catch (failure) {
       setSelected(item.stockStatus);
@@ -127,8 +129,8 @@ export function MenuStockActions({
       mask={{ closable: !busy }}
     >
       <p>
-        This preserves the item and all existing order history. The item will be marked
-        Temporarily Disabled. No menu item or past order will be deleted.
+        This preserves the item and all existing order history. The item will be marked Temporarily
+        Disabled. No menu item or past order will be deleted.
       </p>
     </Modal>
   );
@@ -144,7 +146,9 @@ export function MenuStockActions({
           disabled={blocked || item.stockStatus === 'TEMPORARILY_DISABLED'}
           onClick={() => setConfirmDisable(true)}
         />
-        {error && <Alert type="error" role="alert" showIcon title={error} className={styles.error} />}
+        {error && (
+          <Alert type="error" role="alert" showIcon title={error} className={styles.error} />
+        )}
         {confirmDialog}
       </span>
     );

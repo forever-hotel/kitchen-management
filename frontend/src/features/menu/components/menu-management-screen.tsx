@@ -22,11 +22,7 @@ import type {
   MenuManagementScreenProps,
   MenuStockFilter,
 } from '../types/menu-management.type';
-import {
-  filterMenuItems,
-  formatCategoryTime,
-  getStockCounts,
-} from '../utils/menu-management.util';
+import { filterMenuItems, formatCategoryTime, getStockCounts } from '../utils/menu-management.util';
 
 import { normalizeMenuImageUrl } from '../utils/menu-item-write.validation';
 import { AddCategoryModal } from './add-category-modal';
@@ -40,7 +36,6 @@ const stockTabs: readonly { value: MenuStockFilter; label: string }[] = [
   { value: 'LOW_STOCK', label: 'Low Stock' },
   { value: 'UNAVAILABLE', label: 'Unavailable' },
 ];
-
 
 /** Decorative category icons follow the reference screens; no Figma SVGs are embedded. */
 function MealCategoryIcon({ name }: { name: string }) {
@@ -463,7 +458,8 @@ export function MenuManagementScreen({
                       <td data-label="Prep Time">{item.preparationTime} min</td>
                       <td data-label="Portion Limit">{item.portionLimit}</td>
                       <td data-label="Stock Status">
-                        <MenuStockActions mode="status"
+                        <MenuStockActions
+                          mode="status"
                           key={`${item.menuItemId}-${item.stockStatus}`}
                           item={item}
                           enabled={Boolean(
@@ -476,25 +472,27 @@ export function MenuManagementScreen({
                       <td data-label="Actions">
                         <div className={styles.actionButtons}>
                           <Button
-                          icon={<EditOutlined aria-hidden="true" />}
-                          disabled={!onEditItem && !canUpdateMenu && !previewMode}
-                          onClick={() => {
-                            if (canUpdateMenu || previewMode) setMenuModal({ mode: 'edit', item });
-                            else onEditItem?.(item);
-                          }}
-                          aria-label={`Edit ${item.name}`}
-                          title={
-                            !onEditItem ? 'Menu editing is planned for a later issue' : undefined
-                          }
-                         />
-                          <MenuStockActions mode="remove"
-                          item={item}
-                          enabled={Boolean(
-                            dataMode === 'api' && onChangeStockStatus && onReloadMenuItems,
-                          )}
-                          onUpdate={onChangeStockStatus}
-                          onReload={reloadMenuItems}
-                        />
+                            icon={<EditOutlined aria-hidden="true" />}
+                            disabled={!onEditItem && !canUpdateMenu && !previewMode}
+                            onClick={() => {
+                              if (canUpdateMenu || previewMode)
+                                setMenuModal({ mode: 'edit', item });
+                              else onEditItem?.(item);
+                            }}
+                            aria-label={`Edit ${item.name}`}
+                            title={
+                              !onEditItem ? 'Menu editing is planned for a later issue' : undefined
+                            }
+                          />
+                          <MenuStockActions
+                            mode="remove"
+                            item={item}
+                            enabled={Boolean(
+                              dataMode === 'api' && onChangeStockStatus && onReloadMenuItems,
+                            )}
+                            onUpdate={onChangeStockStatus}
+                            onReload={reloadMenuItems}
+                          />
                         </div>
                       </td>
                     </tr>

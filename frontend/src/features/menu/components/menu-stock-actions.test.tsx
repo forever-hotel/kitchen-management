@@ -98,7 +98,9 @@ describe('R-10 / DDP-73 compact Figma stock actions', () => {
     renderActions();
     expect(screen.getAllByRole('combobox', { name: /Stock control/ })).toHaveLength(1);
     expect(screen.queryByRole('button', { name: /Apply stock/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Remove Chicken Fried Rice safely/ })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /Remove Chicken Fried Rice safely/ }),
+    ).not.toBeInTheDocument();
     expect(screen.queryByText('Quick status')).not.toBeInTheDocument();
   });
 
@@ -178,7 +180,9 @@ describe('R-10 / DDP-73 compact Figma stock actions', () => {
   });
 
   it('does not repeat a confirmed PATCH while reload is pending', async () => {
-    const onReload = jest.fn(async () => { throw new Error('offline'); });
+    const onReload = jest.fn(async () => {
+      throw new Error('offline');
+    });
     const { onUpdate } = renderActions({ onReload });
     changeStatus('AVAILABLE');
     await waitFor(() => expect(onReload).toHaveBeenCalledTimes(1));

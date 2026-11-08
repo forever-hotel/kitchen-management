@@ -1,32 +1,28 @@
 'use client';
 
-import { Layout, Space, Typography } from 'antd';
+import { Layout } from 'antd';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import type { PropsWithChildren } from 'react';
 
+import { KmsLogoutButton } from './kms-logout-button';
+import { KmsCurrentTime } from './kms-current-time';
+import styles from './kms-header.module.css';
 import { getKmsNavigationItems, type KmsRole } from './kms-navigation';
-import { KmsLogoutButton } from '@/components/layout/kms-logout-button';
 
-const { Header, Content, Footer } = Layout;
+const { Content, Footer } = Layout;
 
 interface KmsShellProps extends PropsWithChildren {
   role?: KmsRole | null;
-  /** Development-only links to fixture screens; never grants manager authorization. */
-  previewNavigation?: boolean;
 }
 
-const previewRoutes = [
-  { href: '/menu-management', label: 'Menu Management' },
-  { href: '/time-windows', label: 'Time Windows' },
-] as const;
-
 /**
- * Shared application shell. Real navigation remains role-based, and production
- * authorization is independent of the development-only preview navigation.
+ * The approved Order Queue navigation skin, bound to real DDP-235 session roles.
+ * No development-only manager bypass or preview navigation is permitted.
  */
-export function KmsShell({ children, role = null, previewNavigation = false }: KmsShellProps) {
+export function KmsShell({ children, role = null }: KmsShellProps) {
+  const pathname = usePathname();
   const navigationItems = getKmsNavigationItems(role);
-  const showPreviewNavigation = previewNavigation && process.env.NODE_ENV !== 'production';
 
   return (
     <Layout className="kms-shell">
@@ -34,50 +30,41 @@ export function KmsShell({ children, role = null, previewNavigation = false }: K
         Skip to main content
       </a>
 
-      <Header className="kms-shell__header">
-        <div className="kms-shell__brand">
-          <Typography.Text className="kms-shell__hotel">
-            FOREVER <span className="kms-shell__accent">· KMS</span>
-          </Typography.Text>
-
-          <Typography.Title level={1} className="kms-shell__title">
-            Kitchen Management System
-          </Typography.Title>
+      <header className={styles.header}>
+        <div className={styles.brand}>
+          <span className={styles.brandDot} aria-hidden="true" />
+          <span className={styles.brandName}>FOREVER · KMS</span>
+          <h1 className={styles.visuallyHidden}>Kitchen Management System</h1>
         </div>
 
-        {navigationItems.length > 0 ? (
-          <nav aria-label="Kitchen navigation" className="kms-shell__nav">
-            <Space size="middle" wrap>
-              {navigationItems.map((item) => (
-                <Link key={item.key} href={item.href} className="kms-shell__nav-link">
+        {navigationItems.length > 0 && (
+          <nav aria-label="Kitchen navigation" className={styles.navigation}>
+            {navigationItems.map((item) => {
+              const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+              return (
+                <Link
+                  key={item.key}
+                  href={item.href}
+                  aria-current={active ? 'page' : undefined}
+                  className={`${styles.navLink}${active ? ` ${styles.navLinkActive}` : ''}`}
+                >
                   {item.label}
                 </Link>
-              ))}
-              {role && <span className="kms-shell__role">{role.replace(/_/g, ' ')}</span>}
-              <KmsLogoutButton />
-            </Space>
+              );
+            })}
+            <KmsLogoutButton />
           </nav>
-        ) : showPreviewNavigation ? (
-          <nav aria-label="Local UI preview navigation" className="kms-shell__nav">
-            <Space size="middle" wrap>
-              <span className="kms-shell__preview-label">LOCAL UI PREVIEW</span>
-              {previewRoutes.map((item) => (
-                <Link key={item.href} href={item.href} className="kms-shell__nav-link">
-                  {item.label}
-                </Link>
-              ))}
-            </Space>
-          </nav>
-        ) : null}
-      </Header>
+        )}
+
+        <KmsCurrentTime />
+      </header>
 
       <Content id="main-content" className="kms-shell__content" tabIndex={-1}>
         <div className="kms-shell__main">{children}</div>
       </Content>
 
-      <Footer className="kms-shell__footer">
-        <Typography.Text>Forever Hotel Kitchen Operations</Typography.Text>
-      </Footer>
+      <Footer className="kms-shell__footer">Forever Hotel Kitchen Operations</Footer>
     </Layout>
   );
 }
