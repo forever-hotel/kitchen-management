@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation';
 
-import { managerMenuRequest } from '@/features/menu/server/menu-management.api';
+import { managerMenuRequest } from '../../menu/server/menu-management.api';
 import { mapMenuCategories } from '@/features/menu/utils/menu-api.mapping';
 import type { KmsMealCategoryData } from '@/types/kms-menu';
 

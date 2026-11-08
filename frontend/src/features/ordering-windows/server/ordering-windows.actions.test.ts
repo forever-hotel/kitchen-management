@@ -1,8 +1,8 @@
-import { managerMenuRequest } from '@/features/menu/server/menu-management.api';
+import { managerMenuRequest } from '../../menu/server/menu-management.api';
 
 import { reloadOrderingWindows, updateOrderingWindow } from './ordering-windows.actions';
 
-jest.mock('@/features/menu/server/menu-management.api', () => ({
+jest.mock('../../menu/server/menu-management.api', () => ({
   managerMenuRequest: jest.fn(),
 }));
 
