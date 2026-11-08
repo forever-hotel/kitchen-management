@@ -61,7 +61,6 @@ export default async function TimeWindowsPage({
       dataMode="api"
       onUpdateWindow={updateOrderingWindow}
       onUpdateAvailability={updateOrderingEnabled}
-      availabilityControlsEnabled={process.env.KMS_WINDOW_AVAILABILITY_UI_ENABLED === 'true'}
       onReloadWindows={reloadOrderingWindows}
     />
   );

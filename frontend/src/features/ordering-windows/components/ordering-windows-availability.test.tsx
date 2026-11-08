@@ -33,22 +33,22 @@ function display(
   );
 }
 
-describe('DDP-268 gated ordering availability', () => {
-  it('remains disabled until the cross-service rollout gate is explicitly enabled', () => {
+describe('DDP-268 manager ordering availability', () => {
+  it('allows editing by default when authenticated callbacks are connected', () => {
     display({
       onUpdateAvailability: jest.fn(async () => undefined),
       onReloadWindows: jest.fn(async () => [original]),
     });
     const card = screen.getByRole('article', { name: 'Dinner ordering window' });
-    expect(
-      within(card).getByRole('switch', { name: 'Dinner ordering window enabled' }),
-    ).toBeDisabled();
+    const toggle = within(card).getByRole('switch', { name: 'Dinner ordering window enabled' });
+    expect(toggle).toBeEnabled();
+    expect(toggle).toBeChecked();
   });
 
-  it('saves false and reflects confirmed KMS readback when the local gate is enabled', async () => {
+  it('saves false and reflects confirmed KMS readback with the default controls', async () => {
     const onUpdateAvailability = jest.fn(async () => undefined);
     const onReloadWindows = jest.fn(async () => [{ ...original, orderingEnabled: false }]);
-    display({ availabilityControlsEnabled: true, onUpdateAvailability, onReloadWindows });
+    display({ onUpdateAvailability, onReloadWindows });
     const card = screen.getByRole('article', { name: 'Dinner ordering window' });
     fireEvent.click(within(card).getByRole('switch', { name: 'Dinner ordering window enabled' }));
     await waitFor(() => expect(onUpdateAvailability).toHaveBeenCalledWith(categoryId, false));
@@ -58,6 +58,5 @@ describe('DDP-268 gated ordering availability', () => {
         within(card).getByRole('switch', { name: 'Dinner ordering window enabled' }),
       ).not.toBeChecked(),
     );
-    expect(screen.getByText('Guest-order enforcement pending')).toBeInTheDocument();
   });
 });
