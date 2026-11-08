@@ -2,10 +2,12 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
+import { OrderReadyOutboxService } from '../../messaging/order-ready-outbox.service.js';
 import { AllergySafetyService } from './allergy-safety.service.js';
 import { OrderStatusTransitionResponseDto } from './dto/order-status-transition-response.dto.js';
 import { FoodOrder } from './entities/food-order.entity.js';
@@ -20,6 +22,7 @@ export class OrdersTransitionService {
   constructor(
     @InjectDataSource() private readonly dataSource: DataSource,
     private readonly allergySafety: AllergySafetyService,
+    @Optional() private readonly orderReadyOutbox?: OrderReadyOutboxService,
   ) {}
 
   startPreparation(orderId: string): Promise<OrderStatusTransitionResponseDto> {
@@ -53,6 +56,17 @@ export class OrdersTransitionService {
 
       // An immediately repeated command for the current state is a no-op.
       if (order.status === target) {
+        // Repeating READY also schedules an event if messaging was enabled later.
+        if (
+          target === FoodOrderStatus.READY &&
+          this.orderReadyOutbox?.enabled
+        ) {
+          await this.orderReadyOutbox.record(
+            manager,
+            orderId,
+            order.roomNumber,
+          );
+        }
         return {
           orderId,
           previousStatus: target,
@@ -74,6 +88,10 @@ export class OrdersTransitionService {
 
       order.status = target;
       await repository.save(order);
+      // Atomic: a committed READY transition always has an outbox record.
+      if (target === FoodOrderStatus.READY && this.orderReadyOutbox?.enabled) {
+        await this.orderReadyOutbox.record(manager, orderId, order.roomNumber);
+      }
       return {
         orderId,
         previousStatus: expected,
