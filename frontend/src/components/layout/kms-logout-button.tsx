@@ -4,6 +4,8 @@ import { Button } from 'antd';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import styles from './kms-header.module.css';
+
 interface LogoutResponse {
   status?: string;
   error?: string;
@@ -11,13 +13,11 @@ interface LogoutResponse {
 
 export function KmsLogoutButton() {
   const router = useRouter();
-
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleLogout(): Promise<void> {
     if (submitting) return;
-
     setSubmitting(true);
     setError(null);
 
@@ -29,7 +29,6 @@ export function KmsLogoutButton() {
       });
 
       let body: LogoutResponse | null = null;
-
       try {
         body = (await response.json()) as LogoutResponse;
       } catch {
@@ -42,12 +41,10 @@ export function KmsLogoutButton() {
         );
         return;
       }
-
       if (body?.status !== 'signed_out') {
         setError('Logout could not be confirmed.');
         return;
       }
-
       router.replace('/login');
     } catch {
       setError('Unable to contact the logout service. Please retry.');
@@ -59,28 +56,18 @@ export function KmsLogoutButton() {
   return (
     <>
       <Button
+        type="text"
+        danger
+        className={styles.logoutButton}
         htmlType="button"
         loading={submitting}
         disabled={submitting}
         onClick={() => void handleLogout()}
-        style={{
-          background: 'transparent',
-          color: 'var(--kms-header-foreground)',
-          borderColor: 'var(--kms-header-foreground)',
-          minHeight: 44,
-        }}
       >
         Sign out
       </Button>
-
       {error && (
-        <span
-          role="alert"
-          style={{
-            color: 'var(--kms-header-foreground)',
-            fontSize: 12,
-          }}
-        >
+        <span role="alert" className={styles.logoutError}>
           {error}
         </span>
       )}

@@ -17,8 +17,8 @@ interface KmsShellProps extends PropsWithChildren {
 }
 
 /**
- * The approved Order Queue navigation skin, bound to real DDP-235 session roles.
- * No development-only manager bypass or preview navigation is permitted.
+ * Preserve role-validated kitchen navigation. Account actions are kept next to
+ * the hotel clock so the navigation stays focused on workspace destinations.
  */
 export function KmsShell({ children, role = null }: KmsShellProps) {
   const pathname = usePathname();
@@ -41,7 +41,6 @@ export function KmsShell({ children, role = null }: KmsShellProps) {
           <nav aria-label="Kitchen navigation" className={styles.navigation}>
             {navigationItems.map((item) => {
               const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-
               return (
                 <Link
                   key={item.key}
@@ -53,11 +52,21 @@ export function KmsShell({ children, role = null }: KmsShellProps) {
                 </Link>
               );
             })}
-            <KmsLogoutButton />
           </nav>
         )}
 
-        <KmsCurrentTime />
+        <div
+          className={styles.headerUtilities}
+          role="group"
+          aria-label="Hotel time and account actions"
+        >
+          <KmsCurrentTime />
+          {navigationItems.length > 0 ? (
+            <div className={styles.logoutSlot}>
+              <KmsLogoutButton />
+            </div>
+          ) : null}
+        </div>
       </header>
 
       <Content id="main-content" className="kms-shell__content" tabIndex={-1}>

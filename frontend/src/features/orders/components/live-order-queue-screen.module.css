@@ -1,0 +1,287 @@
+/* DDP-262: compact operational toolbar integrated into the existing summary strip. */
+.summaryActions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.liveBadge {
+  color: #1a6b3c;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.refreshButton {
+  border-left: 1px solid #d8dcd8 !important;
+  border-radius: 0 !important;
+  padding-left: 12px !important;
+  color: #1a3c5e !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  height: 32px;
+}
+.refreshButton:hover:not(:disabled) {
+  color: #123650 !important;
+  background: #e8eef4 !important;
+}
+.refreshButton:focus-visible {
+  outline: 2px solid #1a3c5e;
+  outline-offset: 2px;
+}
+.warningBadge {
+  padding: 4px 7px;
+  border: 1px solid #d7a33b;
+  border-radius: 4px;
+  background: #fcf8eb;
+  color: #7a4f00;
+  font-size: 11px;
+  font-weight: 800;
+}
+.alert {
+  margin-bottom: 14px;
+}
+.loading {
+  padding: 34px 12px;
+  color: #1a3c5e;
+}
+.action {
+  background: #1a3c5e !important;
+  border-color: #1a3c5e !important;
+  cursor: pointer;
+}
+.readyAction {
+  background: #1a6b3c !important;
+  border-color: #1a6b3c !important;
+  cursor: pointer;
+}
+.action:disabled,
+.readyAction:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+/* Reference-aligned acknowledgement dialog; colors remain Forever Hotel approved tones. */
+/* The modal's container/header/body/close now use Ant Design v6 semantic
+   `styles` properties in TSX, rather than legacy `.ant-modal-content` selectors.
+   These are portal-safe and keep contrast and centering consistent. */
+.modalTitle {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding-right: 20px;
+}
+.modalTitleIcon {
+  flex: 0 0 33px;
+  display: grid;
+  place-items: center;
+  width: 33px;
+  height: 33px;
+  border-radius: 7px;
+  background: rgb(255 255 255 / 16%);
+  color: #ffdb53;
+  font-size: 20px;
+}
+.modalTitle strong {
+  font-size: 16px;
+  font-weight: 750;
+  color: #fff;
+}
+.modalTitle p {
+  font-size: 12px;
+  line-height: 1.55;
+  font-weight: 400;
+  color: #ffd4d4;
+  margin: 9px 0 0;
+}
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  font-size: 13px;
+  padding: 21px 26px 0;
+}
+.modalBody h3 {
+  margin: 0 0 8px;
+  color: #625e58;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+}
+.modalBody p {
+  margin: 0;
+}
+.modalMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.modalMeta span {
+  border: 1px solid #d4d9d1;
+  background: #f7f6f3;
+  border-radius: 5px;
+  padding: 7px 11px;
+  font-size: 11px;
+  color: #5c5a56;
+}
+.modalMeta strong {
+  font-weight: 750;
+  color: #242b2a;
+}
+.modalItemSection {
+  min-width: 0;
+}
+.modalItems {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid #d8dcd8;
+  border-radius: 7px;
+  overflow: hidden;
+  background: #f7f6f4;
+}
+.modalItems li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 13px;
+  border-bottom: 1px solid #d8dcd8;
+  color: #262626;
+}
+.modalItems li:last-child {
+  border-bottom: none;
+}
+.modalItems small {
+  color: #5d5d5d;
+}
+.modalQuantity {
+  padding: 3px 7px;
+  border-radius: 3px;
+  background: #e8eef4;
+  font-size: 11px;
+  font-weight: 700;
+  color: #1a3c5e;
+  white-space: nowrap;
+}
+.modalWarningSection h3 {
+  color: #7a4f00;
+}
+.warningPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid #dba02a;
+  border-radius: 8px;
+  padding: 15px;
+  background: #f9f7f2;
+}
+.warningPanelTitle {
+  color: #885800;
+  font-size: 12px;
+}
+.warningChips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  font-size: 12px;
+}
+.warningChips strong {
+  color: #5e5040;
+}
+.warningTag,
+.dietaryTag {
+  padding: 2px 9px;
+  border-radius: 100px;
+  background: #fff;
+  border: 1px solid #d89a22;
+  color: #7a4f00;
+  font-size: 11px;
+  margin-inline-end: 0;
+}
+.dietaryTag {
+  border-color: #c7d1c5;
+  color: #1a6b3c;
+}
+.guestNote {
+  padding: 10px 13px;
+  margin: 0;
+  border: 1px solid #d8dcd8;
+  border-left: 3px solid #d89a22;
+  border-radius: 5px;
+  background: #fff;
+  color: #313131;
+}
+.guestNote strong {
+  font-size: 11px;
+  color: #855500;
+}
+.guestNote p {
+  margin-top: 6px;
+  line-height: 1.6;
+  font-style: italic;
+  overflow-wrap: anywhere;
+}
+.warningDisclaimer {
+  font-size: 11px;
+  line-height: 1.55;
+  color: #7a4f00;
+}
+.acknowledgementPanel {
+  border: 1px solid #1a6b3c;
+  background: #eaf5ed;
+  border-radius: 7px;
+  padding: 15px 14px;
+}
+.acknowledgementPanel :global(.ant-checkbox-wrapper) {
+  color: #1d3529;
+  line-height: 1.65;
+  font-size: 12px;
+}
+.acknowledgementPanel :global(.ant-checkbox-checked .ant-checkbox-inner) {
+  background-color: #1a6b3c;
+  border-color: #1a6b3c;
+}
+.modalActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin: 0 -26px;
+  padding: 15px 26px;
+  border-top: 1px solid #d8dcd8;
+  background: #f7f6f4;
+}
+.modalActions :global(.ant-btn) {
+  min-height: 40px;
+}
+.modalConfirmButton:not(:disabled) {
+  background: #1a6b3c;
+  border-color: #1a6b3c;
+  font-weight: 700;
+}
+.modalConfirmButton:not(:disabled):hover {
+  background: #155a33 !important;
+  border-color: #155a33 !important;
+}
+@media (max-width: 700px) {
+  .summaryActions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .refreshButton {
+    padding-left: 9px !important;
+  }
+  .allergyModal :global(.ant-modal-header) {
+    padding: 18px;
+  }
+  .modalBody {
+    padding: 18px 17px 0;
+  }
+  .modalActions {
+    margin: 0 -17px;
+    padding: 13px 17px;
+  }
+  .modalActions > * {
+    flex: 1 1 auto;
+  }
+}
