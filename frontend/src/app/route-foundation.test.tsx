@@ -1,5 +1,9 @@
 import { render, screen } from '@testing-library/react';
 
+jest.mock('../features/menu/server/menu-management.api', () => ({
+  getMenuManagementSnapshot: jest.fn(),
+}));
+
 jest.mock('../lib/auth/kms-workspace-access', () => ({
   requireKmsWorkspaceSession: jest.fn(),
   requireKmsManagerSession: jest.fn(),
@@ -18,6 +22,7 @@ import {
   requireKmsWorkspaceSession,
 } from '../lib/auth/kms-workspace-access';
 import { AppProviders } from '@/providers/app-providers';
+import { getMenuManagementSnapshot } from '../features/menu/server/menu-management.api';
 import LoginPage from './(auth)/login/page';
 import MenuManagementPage from './(protected)/menu-management/page';
 import OrderDetailsPage from './(protected)/order-queue/[id]/page';
@@ -60,15 +65,42 @@ describe('KMS route foundation', () => {
     expect(requireKmsWorkspaceSession).toHaveBeenCalledTimes(1);
   });
 
-  it('renders Menu Management after manager authorization', async () => {
+  it('renders live Menu Management after manager authorization', async () => {
+    jest.mocked(getMenuManagementSnapshot).mockResolvedValue({
+      categories: [
+        {
+          categoryId: 'category-1',
+          name: 'Lunch',
+          orderStartTime: '11:30:00',
+          orderCutoffTime: '14:30:00',
+        },
+      ],
+      items: [
+        {
+          menuItemId: 'item-1',
+          categoryId: 'category-1',
+          name: 'Chicken Fried Rice',
+          description: 'Lunch dish',
+          price: 1650,
+          preparationTime: 18,
+          portionLimit: 4,
+          stockStatus: 'LOW_STOCK',
+          imageUrl: null,
+          allergens: [],
+          dietaryLabels: [],
+        },
+      ],
+      lookups: { allergens: [], dietaryLabels: [] },
+    });
     const page = await MenuManagementPage();
-    expect(requireKmsManagerSession).toHaveBeenCalledTimes(1);
+    expect(requireKmsManagerSession).toHaveBeenCalled();
+    expect(getMenuManagementSnapshot).toHaveBeenCalledTimes(1);
     render(<AppProviders>{page}</AppProviders>);
     expect(screen.getByRole('heading', { name: 'Lunch Menu' })).toBeInTheDocument();
     expect(screen.getByText('Chicken Fried Rice')).toBeInTheDocument();
     expect(
-      screen.getByText('Fixture preview — sample data, not live menu records.'),
-    ).toBeInTheDocument();
+      screen.queryByText('Fixture preview — sample data, not live menu records.'),
+    ).not.toBeInTheDocument();
   });
 
   it('renders Time Windows after manager authorization', async () => {
