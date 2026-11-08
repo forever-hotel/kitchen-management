@@ -102,6 +102,12 @@ export function MenuManagementScreen({
   // Prefer fresh parent data when its categories prop changes, without an effect.
   const currentCategories =
     refreshedCategories?.source === categories ? refreshedCategories.values : categories;
+  // DDP-268: managers maintain disabled categories in Time Windows, not the menu sidebar.
+  // Only hide them from this UI: do not delete records or alter item stock statuses.
+  const visibleCategories =
+    dataMode === 'api'
+      ? currentCategories.filter((category) => category.orderingEnabled !== false)
+      : currentCategories;
 
   const refreshCategories = async () => {
     if (!onRefreshCategories || refreshing) return;
@@ -147,10 +153,10 @@ export function MenuManagementScreen({
 
   // Match the supplied Figma's Lunch-first preview when Lunch exists.
   const fallbackCategory =
-    currentCategories.find((category) => category.name.trim().toLowerCase() === 'lunch') ??
-    currentCategories[0];
+    visibleCategories.find((category) => category.name.trim().toLowerCase() === 'lunch') ??
+    visibleCategories[0];
   const selectedCategory =
-    currentCategories.find((category) => category.categoryId === selectedCategoryId) ??
+    visibleCategories.find((category) => category.categoryId === selectedCategoryId) ??
     fallbackCategory;
 
   const categoryItems = useMemo(
@@ -196,7 +202,7 @@ export function MenuManagementScreen({
           </Button>
         </div>
         <div role="group" aria-label="Select meal category" className={styles.categoryList}>
-          {currentCategories.map((category) => {
+          {visibleCategories.map((category) => {
             const count = displayItems.filter(
               (item) => item.categoryId === category.categoryId,
             ).length;
@@ -383,7 +389,17 @@ export function MenuManagementScreen({
             </div>
           ) : !selectedCategory ? (
             <div className={styles.statePanel}>
-              <Empty description="No meal categories available" />
+              <Empty
+                description={
+                  dataMode === 'api' && currentCategories.length > 0
+                    ? 'All meal categories are disabled. Re-enable a category in Time Windows.'
+                    : 'No meal categories available'
+                }
+              >
+                {dataMode === 'api' && currentCategories.length > 0 && (
+                  <Button href="/time-windows">Manage in Time Windows</Button>
+                )}
+              </Empty>
             </div>
           ) : visibleItems.length === 0 ? (
             <div className={styles.statePanel}>
@@ -511,7 +527,7 @@ export function MenuManagementScreen({
         <AddMenuItemModal
           key={menuModal.mode === 'create' ? 'new-item' : menuModal.item.menuItemId}
           open
-          categories={currentCategories}
+          categories={visibleCategories}
           initialCategoryId={menuModal.mode === 'create' ? menuModal.categoryId : undefined}
           item={menuModal.mode === 'edit' ? menuModal.item : undefined}
           allergens={allergenOptions}

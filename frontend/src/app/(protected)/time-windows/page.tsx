@@ -5,6 +5,7 @@ import {
   reloadOrderingWindows,
   retryOrderingWindowsPage,
   updateOrderingWindow,
+  updateOrderingEnabled,
 } from '@/features/ordering-windows/server/ordering-windows.actions';
 import { ApiError } from '@/lib/api/api-error';
 import { requireKmsManagerSession } from '@/lib/auth/kms-workspace-access';
@@ -59,6 +60,8 @@ export default async function TimeWindowsPage({
       selectedCategoryId={selectedCategoryId}
       dataMode="api"
       onUpdateWindow={updateOrderingWindow}
+      onUpdateAvailability={updateOrderingEnabled}
+      availabilityControlsEnabled={process.env.KMS_WINDOW_AVAILABILITY_UI_ENABLED === 'true'}
       onReloadWindows={reloadOrderingWindows}
     />
   );

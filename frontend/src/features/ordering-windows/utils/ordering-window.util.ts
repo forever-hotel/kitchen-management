@@ -42,6 +42,7 @@ export function displayTime(value: string): string {
 }
 
 export function windowState(window: KmsOrderingWindowData, now: Date): WindowState {
+  if (window.orderingEnabled === false) return 'CLOSED';
   const start = normalizeTime(window.orderStartTime);
   const cutoff = normalizeTime(window.orderCutoffTime);
   if (!start || !cutoff || start >= cutoff) return 'CLOSED';

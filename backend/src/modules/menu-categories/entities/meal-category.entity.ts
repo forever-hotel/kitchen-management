@@ -37,6 +37,13 @@ export class MealCategory {
   })
   orderCutoffTime!: string;
 
+  @Column({
+    name: 'ordering_enabled',
+    type: 'boolean',
+    default: true,
+  })
+  orderingEnabled!: boolean;
+
   @CreateDateColumn({
     name: 'created_at',
     type: 'timestamptz',

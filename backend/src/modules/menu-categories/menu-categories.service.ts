@@ -13,6 +13,7 @@ import {
   HOTEL_TIME_ZONE,
 } from './ordering-window-time.js';
 import { validateOrderingWindowPatch } from './ordering-window.validation.js';
+import { validateOrderingEnabledChange } from './ordering-enabled.validation.js';
 import {
   validateCategoryCreate,
   validateCategoryUpdate,
@@ -25,6 +26,9 @@ function toResponse(category: MealCategory): MealCategoryResponseDto {
     name: category.name,
     orderStartTime: category.orderStartTime,
     orderCutoffTime: category.orderCutoffTime,
+    ...(typeof category.orderingEnabled === 'boolean'
+      ? { orderingEnabled: category.orderingEnabled }
+      : {}),
   };
 }
 
@@ -34,6 +38,9 @@ function toWindowResponse(category: MealCategory): OrderingWindowResponseDto {
     name: category.name,
     orderStartTime: category.orderStartTime,
     orderCutoffTime: category.orderCutoffTime,
+    ...(typeof category.orderingEnabled === 'boolean'
+      ? { orderingEnabled: category.orderingEnabled }
+      : {}),
     timeZone: HOTEL_TIME_ZONE,
   };
 }
@@ -86,6 +93,19 @@ export class MenuCategoriesService {
     return toWindowResponse(updated);
   }
 
+  /** Persist the manager availability flag with the existing row lock. */
+  async updateOrderingEnabled(
+    categoryId: string,
+    payload: unknown,
+  ): Promise<OrderingWindowResponseDto> {
+    const { orderingEnabled } = validateOrderingEnabledChange(payload);
+    const updated = await this.categories.updateCategory(categoryId, () => ({
+      orderingEnabled,
+    }));
+    if (!updated) throw new NotFoundException('Meal category not found');
+    return toWindowResponse(updated);
+  }
+
   /** Server-side request-time check for future approved FOSS/order integration. */
   async isOrderingWindowOpen(
     categoryId: string,
@@ -93,7 +113,9 @@ export class MenuCategoriesService {
   ): Promise<boolean> {
     const category = await this.categories.findById(categoryId);
     if (!category) throw new NotFoundException('Meal category not found');
-    return isWithinOrderingWindow(category, at);
+    return (
+      category.orderingEnabled !== false && isWithinOrderingWindow(category, at)
+    );
   }
 
   /** Relies on the existing PostgreSQL UNIQUE(name) constraint for race-safe conflicts. */
