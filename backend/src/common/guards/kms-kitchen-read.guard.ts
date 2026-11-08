@@ -26,6 +26,7 @@ export class KmsKitchenReadGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<{
       headers: { authorization?: string | string[] };
+      kmsStaff?: { sub: string; role: string };
     }>();
     const { authorization } = request.headers;
 
@@ -99,6 +100,7 @@ export class KmsKitchenReadGuard implements CanActivate {
     ) {
       throw new ForbiddenException('Kitchen workspace access is required');
     }
+    request.kmsStaff = { sub: payload.sub, role: payload.role };
     return true;
   }
 
