@@ -12,6 +12,7 @@ import {
 import { FoodOrderMealPeriod } from '../enums/food-order-meal-period.enum.js';
 import { FoodOrderStatus } from '../enums/food-order-status.enum.js';
 import type { FoodOrderItem } from './food-order-item.entity.js';
+import type { KotPrint } from './kot-print.entity.js';
 
 @Check('"total_amount" >= 0')
 @Entity({ name: 'kms_food_orders' })
@@ -104,4 +105,7 @@ export class FoodOrder {
 
   @OneToMany('FoodOrderItem', 'order')
   items!: Relation<FoodOrderItem[]>;
+
+  @OneToMany('KotPrint', 'order')
+  kotPrints!: Relation<KotPrint[]>;
 }
