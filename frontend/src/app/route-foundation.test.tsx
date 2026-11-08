@@ -5,13 +5,19 @@ jest.mock('../lib/auth/kms-workspace-access', () => ({
   requireKmsManagerSession: jest.fn(),
 }));
 
+jest.mock('../features/orders/components/live-order-queue-screen', () => ({
+  LiveOrderQueueScreen: () => (
+    <div role="region" aria-label="Live kitchen queue">
+      Live Order Queue
+    </div>
+  ),
+}));
+
 import {
   requireKmsManagerSession,
   requireKmsWorkspaceSession,
 } from '../lib/auth/kms-workspace-access';
-
 import { AppProviders } from '@/providers/app-providers';
-
 import LoginPage from './(auth)/login/page';
 import MenuManagementPage from './(protected)/menu-management/page';
 import OrderDetailsPage from './(protected)/order-queue/[id]/page';
@@ -38,15 +44,11 @@ describe('KMS route foundation', () => {
     expect(screen.getByRole('heading', { name: 'Kitchen Management Login' })).toBeInTheDocument();
   });
 
-  it('renders the Order Queue board after staff authorization', async () => {
+  it('protects the live Order Queue with a staff session', async () => {
     const page = await OrderQueuePage();
     expect(requireKmsWorkspaceSession).toHaveBeenCalledTimes(1);
     render(page);
-    expect(screen.getByRole('heading', { name: 'Order Queue' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'New Orders' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'In Preparation' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Ready for Delivery' })).toBeInTheDocument();
-    expect(screen.getByText('Demonstration data — not live')).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Live kitchen queue' })).toBeInTheDocument();
   });
 
   it('protects Order Details and rejects invalid order IDs', async () => {
@@ -55,7 +57,6 @@ describe('KMS route foundation', () => {
         params: Promise.resolve({ id: 'order-123' }),
       }),
     ).rejects.toThrow('NEXT_HTTP_ERROR_FALLBACK;404');
-
     expect(requireKmsWorkspaceSession).toHaveBeenCalledTimes(1);
   });
 
