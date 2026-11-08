@@ -33,7 +33,6 @@ describe('R-10 menu screen stock integration', () => {
     );
     const select = screen.getByRole('combobox', { name: 'Stock control for Chicken Fried Rice' });
     fireEvent.change(select, { target: { value: 'AVAILABLE' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Apply stock for Chicken Fried Rice' }));
     await waitFor(() => expect(onReloadMenuItems).toHaveBeenCalledTimes(1));
     await waitFor(() =>
       expect(screen.getByText('No menu items match these filters')).toBeInTheDocument(),
@@ -61,6 +60,8 @@ describe('R-10 menu screen stock integration', () => {
       }),
     );
     expect(screen.getByText('Chicken Fried Rice')).toBeInTheDocument();
-    expect(screen.getByText('Low Stock', { selector: 'span.ant-tag' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('combobox', { name: 'Stock control for Chicken Fried Rice' }),
+    ).toHaveDisplayValue('Low Stock');
   });
 });
