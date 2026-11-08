@@ -65,7 +65,7 @@ export async function retryMenuPage(): Promise<void> {
   redirect('/menu-management');
 }
 
-export async function editOrderingWindow(_categoryId: string): Promise<void> {
-  void _categoryId;
-  redirect('/time-windows');
+export async function editOrderingWindow(categoryId: string): Promise<void> {
+  // DDP-267: preserve the real selected category when opening Time Windows.
+  redirect(`/time-windows?categoryId=${validId(categoryId)}`);
 }

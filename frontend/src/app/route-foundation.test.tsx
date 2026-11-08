@@ -4,6 +4,12 @@ jest.mock('../features/menu/server/menu-management.api', () => ({
   getMenuManagementSnapshot: jest.fn(),
 }));
 
+jest.mock('../features/ordering-windows/server/ordering-windows.actions', () => ({
+  reloadOrderingWindows: jest.fn(),
+  updateOrderingWindow: jest.fn(),
+  retryOrderingWindowsPage: jest.fn(),
+}));
+
 jest.mock('../lib/auth/kms-workspace-access', () => ({
   requireKmsWorkspaceSession: jest.fn(),
   requireKmsManagerSession: jest.fn(),
@@ -23,6 +29,7 @@ import {
 } from '../lib/auth/kms-workspace-access';
 import { AppProviders } from '@/providers/app-providers';
 import { getMenuManagementSnapshot } from '../features/menu/server/menu-management.api';
+import { reloadOrderingWindows } from '../features/ordering-windows/server/ordering-windows.actions';
 import LoginPage from './(auth)/login/page';
 import MenuManagementPage from './(protected)/menu-management/page';
 import OrderDetailsPage from './(protected)/order-queue/[id]/page';
@@ -103,13 +110,40 @@ describe('KMS route foundation', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('renders Time Windows after manager authorization', async () => {
-    const page = await TimeWindowsPage();
-    expect(requireKmsManagerSession).toHaveBeenCalledTimes(1);
+  it('renders saved live windows and highlights an Edit Window deep link', async () => {
+    const lunchId = '22222222-2222-4222-8222-222222222222';
+    jest.mocked(reloadOrderingWindows).mockResolvedValue([
+      {
+        categoryId: lunchId,
+        name: 'Lunch',
+        orderStartTime: '11:00:00',
+        orderCutoffTime: '14:30:00',
+      },
+      {
+        categoryId: '33333333-3333-4333-8333-333333333333',
+        name: 'Dinner',
+        orderStartTime: '16:30:00',
+        orderCutoffTime: '19:30:00',
+      },
+    ]);
+    const page = await TimeWindowsPage({
+      searchParams: Promise.resolve({ categoryId: lunchId }),
+    });
+    expect(requireKmsManagerSession).toHaveBeenCalled();
+    expect(reloadOrderingWindows).toHaveBeenCalledTimes(1);
     render(<AppProviders>{page}</AppProviders>);
     expect(screen.getByRole('heading', { name: 'Ordering Time Windows' })).toBeInTheDocument();
-    expect(screen.getByText('Ordering windows: 4.')).toBeInTheDocument();
-    expect(screen.getByRole('article', { name: 'Breakfast ordering window' })).toBeInTheDocument();
-    expect(screen.getByRole('article', { name: 'Lunch ordering window' })).toBeInTheDocument();
+    expect(screen.getByText('Ordering windows: 2.')).toBeInTheDocument();
+    expect(screen.getByRole('article', { name: 'Dinner ordering window' })).toBeInTheDocument();
+    expect(screen.getByText('Selected from Menu Management')).toBeInTheDocument();
+    expect(screen.queryByText('Feature scaffold')).not.toBeInTheDocument();
+  });
+
+  it('does not invent saved meal categories when the API returns none', async () => {
+    jest.mocked(reloadOrderingWindows).mockResolvedValue([]);
+    const page = await TimeWindowsPage();
+    render(<AppProviders>{page}</AppProviders>);
+    expect(screen.getByText('Ordering windows: 0.')).toBeInTheDocument();
+    expect(screen.getByText('No ordering windows available')).toBeInTheDocument();
   });
 });

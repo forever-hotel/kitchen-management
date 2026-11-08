@@ -10,7 +10,7 @@ import {
   SunOutlined,
 } from '@ant-design/icons';
 import Link from 'next/link';
-import { type ReactNode, useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 
 import type { KmsMealCategoryData, KmsOrderingWindowData } from '@/types/kms-menu';
 
@@ -27,6 +27,11 @@ import styles from './ordering-windows-screen.module.css';
 export interface OrderingWindowsScreenProps {
   windows: readonly KmsOrderingWindowData[];
   categories?: readonly KmsMealCategoryData[];
+  /** Highlight the category chosen with Edit Window in Menu Management. */
+  selectedCategoryId?: string;
+  /** A live loading error, never replaced by fixture records. */
+  loadError?: string;
+  onRetry?: () => Promise<void>;
   /** The hosting authenticated manager BFF is responsible for its own role enforcement. */
   onUpdateWindow?: (categoryId: string, patch: OrderingWindowPatch) => Promise<unknown>;
   onReloadWindows?: () => Promise<readonly KmsOrderingWindowData[]>;
@@ -64,17 +69,25 @@ function clockLabel(now: Date): string {
 function WindowCard({
   row,
   now,
+  selected,
   editable,
   onSave,
   onRetryReload,
 }: {
   row: WindowRow;
   now: Date;
+  selected: boolean;
   editable: boolean;
   onSave: (id: string, patch: OrderingWindowPatch) => Promise<boolean>;
   onRetryReload: () => Promise<void>;
 }) {
   const { window, category } = row;
+  const cardRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!selected) return;
+    cardRef.current?.focus({ preventScroll: true });
+    cardRef.current?.scrollIntoView?.({ block: 'center' });
+  }, [selected]);
   const [start, setStart] = useState(window.orderStartTime.slice(0, 5));
   const [cutoff, setCutoff] = useState(window.orderCutoffTime.slice(0, 5));
   const [saving, setSaving] = useState(false);
@@ -131,8 +144,10 @@ function WindowCard({
   };
   return (
     <article
+      ref={cardRef}
       aria-label={`${category} ordering window`}
-      className={`${styles.card} ${state === 'OPEN' ? styles.activeCard : ''}`}
+      tabIndex={selected ? -1 : undefined}
+      className={`${styles.card} ${state === 'OPEN' ? styles.activeCard : ''} ${selected ? styles.selectedCard : ''}`}
     >
       <div className={styles.cardHeader}>
         <div className={styles.mealTitle}>
@@ -142,6 +157,9 @@ function WindowCard({
           <div>
             <h3>{category}</h3>
             <p>Ordering window · Asia/Colombo</p>
+            {selected && (
+              <span className={styles.selectedCategoryNotice}>Selected from Menu Management</span>
+            )}
           </div>
         </div>
         <span className={`${styles.status} ${styles[`status${state}`]}`}>
@@ -269,6 +287,9 @@ function WindowCard({
 export function OrderingWindowsScreen({
   windows,
   categories,
+  selectedCategoryId,
+  loadError,
+  onRetry,
   onUpdateWindow,
   onReloadWindows,
   dataMode = 'fixtures',
@@ -291,11 +312,13 @@ export function OrderingWindowsScreen({
 
   const clock = now ?? liveClock;
   const currentWindows = reloaded?.source === windows ? reloaded.values : windows;
-  const editable = dataMode === 'api' && Boolean(onUpdateWindow && onReloadWindows);
+  const editable = dataMode === 'api' && !loadError && Boolean(onUpdateWindow && onReloadWindows);
   const rows: WindowRow[] = currentWindows.map((window, index) => ({
     window,
     category:
-      categories?.find((category) => category.categoryId === window.categoryId)?.name ??
+      ('name' in window && typeof window.name === 'string' && window.name.trim()
+        ? window.name
+        : categories?.find((category) => category.categoryId === window.categoryId)?.name) ??
       `Meal category ${index + 1}`,
   }));
   rows.sort((a, b) => {
@@ -438,6 +461,15 @@ export function OrderingWindowsScreen({
             />
           )}
           {refreshError && <Alert type="error" showIcon title={refreshError} />}
+          {loadError && (
+            <Alert
+              type="error"
+              showIcon
+              title="Ordering windows could not be loaded"
+              description={loadError}
+              action={onRetry ? <Button onClick={() => void onRetry()}>Retry</Button> : undefined}
+            />
+          )}
           <p className={styles.count}>Ordering windows: {rows.length}.</p>
           <div className={styles.cards}>
             {rows.map((row) => (
@@ -445,13 +477,14 @@ export function OrderingWindowsScreen({
                 key={`${row.window.categoryId}:${row.window.orderStartTime}:${row.window.orderCutoffTime}`}
                 row={row}
                 now={clock}
+                selected={selectedCategoryId === row.window.categoryId}
                 editable={editable}
                 onSave={save}
                 onRetryReload={refreshFromServer}
               />
             ))}
           </div>
-          {rows.length === 0 && (
+          {rows.length === 0 && !loadError && (
             <Alert
               type="warning"
               title="No ordering windows available"
