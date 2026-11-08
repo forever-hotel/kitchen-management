@@ -11,6 +11,7 @@ import { AllergySafetyService } from './allergy-safety.service.js';
 import { OrderAllergyAcknowledgement } from './entities/order-allergy-acknowledgement.entity.js';
 import { FoodOrderItem } from './entities/food-order-item.entity.js';
 import { FoodOrder } from './entities/food-order.entity.js';
+import { KotPrint } from './entities/kot-print.entity.js';
 import { OrdersController } from './orders.controller.js';
 import { OrdersCreateController } from './orders-create.controller.js';
 import { OrdersCreateService } from './orders-create.service.js';
@@ -21,11 +22,13 @@ import { OrdersTransitionController } from './orders-transition.controller.js';
 import { OrdersTransitionService } from './orders-transition.service.js';
 import { FoodOrderItemRepository } from './repositories/food-order-item.repository.js';
 import { FoodOrderRepository } from './repositories/food-order.repository.js';
+import { KotPrintRepository } from './repositories/kot-print.repository.js';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       FoodOrder,
+      KotPrint,
       FoodOrderItem,
       MenuItem,
       MealCategory,
@@ -47,9 +50,15 @@ import { FoodOrderRepository } from './repositories/food-order.repository.js';
     OrdersCreateService,
     KmsOrderIntakeGuard,
     FoodOrderRepository,
+    KotPrintRepository,
     FoodOrderItemRepository,
     KmsKitchenReadGuard,
   ],
-  exports: [FoodOrderRepository, FoodOrderItemRepository, AllergySafetyService],
+  exports: [
+    FoodOrderRepository,
+    KotPrintRepository,
+    FoodOrderItemRepository,
+    AllergySafetyService,
+  ],
 })
 export class OrdersModule {}

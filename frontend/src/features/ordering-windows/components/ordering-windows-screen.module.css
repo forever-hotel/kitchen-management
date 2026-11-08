@@ -137,6 +137,22 @@
 .activeCard {
   border: 1.5px solid #2e5f8a;
 }
+/* DDP-267: subtle deep-link emphasis; existing Figma cards remain unchanged. */
+.selectedCard {
+  border: 2px solid #c9920d;
+  scroll-margin-block: 24px;
+}
+.selectedCard:focus {
+  outline: 2px solid #1a3c5e;
+  outline-offset: 2px;
+}
+.selectedCategoryNotice {
+  display: inline-block;
+  margin-top: 5px;
+  color: #8a6100;
+  font-size: 11px;
+  font-weight: 600;
+}
 .cardHeader {
   display: flex;
   justify-content: space-between;
