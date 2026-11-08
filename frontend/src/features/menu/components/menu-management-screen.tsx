@@ -515,10 +515,10 @@ export function MenuManagementScreen({
                   ))}
                 </tbody>
               </table>
-              <p className={styles.priceNote}>
+              {/* <p className={styles.priceNote}>
                 Prices show raw KMS integer values. Currency and unit interpretation require
                 contract approval.
-              </p>
+              </p> */}
             </>
           )}
         </div>

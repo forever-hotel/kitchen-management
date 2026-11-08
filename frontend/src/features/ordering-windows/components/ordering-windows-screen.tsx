@@ -319,7 +319,7 @@ export function OrderingWindowsScreen({
   onRetry,
   onUpdateWindow,
   onReloadWindows,
-  availabilityControlsEnabled = false,
+  availabilityControlsEnabled = true,
   onUpdateAvailability,
   dataMode = 'fixtures',
   now,
@@ -505,14 +505,14 @@ export function OrderingWindowsScreen({
               showIcon
             />
           )}
-          {availabilityControlsEnabled && (
+          {/* {availabilityControlsEnabled && (
             <Alert
               type="warning"
               showIcon
               title="Guest-order enforcement pending"
               description="This switch currently saves KMS availability only. FOSS still has separate fixed meal windows; do not rely on this control to stop guest orders until the FOSS integration is deployed."
             />
-          )}
+          )} */}
           {savedNotice && (
             <Alert
               type="success"
@@ -567,13 +567,12 @@ export function OrderingWindowsScreen({
                 <li key={entry.key} className={styles.timelineRow}>
                   <span className={styles.timelineTime}>{entry.time}</span>
                   <span
-                    className={`${styles.timelineBar} ${
-                      entry.kind === 'gap'
-                        ? styles.timelineGap
-                        : entry.open
-                          ? styles.timelineActive
-                          : ''
-                    }`}
+                    className={`${styles.timelineBar} ${entry.kind === 'gap'
+                      ? styles.timelineGap
+                      : entry.open
+                        ? styles.timelineActive
+                        : ''
+                      }`}
                   >
                     {entry.label}
                   </span>
@@ -584,7 +583,7 @@ export function OrderingWindowsScreen({
               Starts are inclusive; cutoffs are exclusive. Times are hotel-local.
             </p>
           </section>
-          <section
+          {/* <section
             className={`${styles.sidePanel} ${styles.helpPanel}`}
             aria-labelledby="window-help-heading"
           >
@@ -593,8 +592,8 @@ export function OrderingWindowsScreen({
               The FOSS backend must check the latest saved window when an order is submitted.
               Viewing the menu is not authorization to place an order after cutoff.
             </p>
-          </section>
-          <section
+          </section> */}
+          {/* <section
             className={`${styles.sidePanel} ${styles.policyPanel}`}
             aria-labelledby="schema-heading"
           >
@@ -607,7 +606,7 @@ export function OrderingWindowsScreen({
               Cross-category overlap rules and live FOSS enforcement remain separate integration
               decisions.
             </p>
-          </section>
+          </section> */}
         </aside>
       </div>
     </section>
