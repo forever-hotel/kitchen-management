@@ -6,10 +6,7 @@ import { requireKmsWorkspaceSession } from '../../lib/auth/kms-workspace-access'
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-/**
- * Authenticated KMS workspace.
- * Navigation uses the role validated by the API Gateway.
- */
+/** Live Gateway session and role always control protected KMS navigation. */
 export default async function WorkspaceLayout({ children }: PropsWithChildren) {
   const session = await requireKmsWorkspaceSession();
 
