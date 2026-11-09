@@ -46,7 +46,7 @@ export function getKmsNavigationItems(role: KmsRole | null | undefined): KmsNavi
     return [];
   }
 
-  if (role === 'KITCHEN_MANAGER') {
+  if (role === 'KITCHEN_MANAGER' || role === 'ROOT') {
     return [...navigationItems];
   }
 

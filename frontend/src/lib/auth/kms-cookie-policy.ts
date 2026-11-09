@@ -20,7 +20,11 @@ export interface KmsCookieOptions {
 export function getKmsSessionCookieOptions(
   expiresAtSeconds: number,
   nowSeconds = Math.floor(Date.now() / 1000),
-  isProduction = process.env.NODE_ENV === 'production',
+  isProduction = process.env.NODE_ENV === 'production' &&
+    !(
+      process.env.KMS_ALLOW_INSECURE_LOCAL_COOKIE === 'true' &&
+      /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(process.env.APP_ORIGIN || '')
+    ),
 ): KmsCookieOptions {
   if (
     !Number.isSafeInteger(expiresAtSeconds) ||

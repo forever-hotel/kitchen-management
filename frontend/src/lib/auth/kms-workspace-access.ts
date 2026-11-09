@@ -58,7 +58,7 @@ export async function requireKmsWorkspaceSession(): Promise<KmsStaffSession> {
 export async function requireKmsManagerSession(): Promise<KmsStaffSession> {
   const session = await requireKmsWorkspaceSession();
 
-  if (session.role !== 'KITCHEN_MANAGER') {
+  if (!['ROOT', 'KITCHEN_MANAGER'].includes(session.role)) {
     notFound();
   }
 

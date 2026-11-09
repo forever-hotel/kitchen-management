@@ -2,12 +2,12 @@
  * Shared Forever Hotel API Gateway authentication contracts.
  */
 
-export const KMS_ROLES = ['KITCHEN_MANAGER', 'KITCHEN_STAFF'] as const;
+export const KMS_ROLES = ['ROOT', 'KITCHEN_MANAGER', 'KITCHEN_STAFF'] as const;
 
 export type KmsRole = (typeof KMS_ROLES)[number];
 
 export function isKmsRole(role: unknown): role is KmsRole {
-  return role === 'KITCHEN_MANAGER' || role === 'KITCHEN_STAFF';
+  return role === 'ROOT' || role === 'KITCHEN_MANAGER' || role === 'KITCHEN_STAFF';
 }
 
 export interface GatewayLoginRequest {

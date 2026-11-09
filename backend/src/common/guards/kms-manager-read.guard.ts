@@ -94,7 +94,10 @@ export class KmsManagerReadGuard implements CanActivate {
         'The staff session could not be verified',
       );
     }
-    if (session.role !== 'KITCHEN_MANAGER' || session.passwordChangeRequired) {
+    if (
+      !['ROOT', 'KITCHEN_MANAGER'].includes(session.role) ||
+      session.passwordChangeRequired
+    ) {
       throw new ForbiddenException('Kitchen Manager access is required');
     }
     return true;

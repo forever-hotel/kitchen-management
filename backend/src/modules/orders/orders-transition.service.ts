@@ -87,6 +87,9 @@ export class OrdersTransitionService {
       }
 
       order.status = target;
+      if (target === FoodOrderStatus.IN_PREPARATION)
+        order.preparationStartedAt = new Date();
+      if (target === FoodOrderStatus.READY) order.readyAt = new Date();
       await repository.save(order);
       // Atomic: a committed READY transition always has an outbox record.
       if (target === FoodOrderStatus.READY && this.orderReadyOutbox?.enabled) {

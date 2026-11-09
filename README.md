@@ -2,6 +2,10 @@
 
 A full-stack kitchen management application for the Forever Hotel operations stack. The project combines a NestJS API, a Next.js frontend, and supporting infrastructure for local development with PostgreSQL and RabbitMQ.
 
+## Shared workspace integration
+
+Use the workspace-root Compose file for integration: KMS UI port 3005, backend 4005, gateway prefix `/kms`, and gateway socket path `/realtime/socket.io`. Apply the manual KMS supplement in root `documents/database/kms-integration.sql` first on an existing shared database. Root Compose supplies environment settings; it does not use this repository's infrastructure-only Compose file. See root `documents/kms/README.md` for the current integration and user checks.
+
 ## Stack
 
 - Backend: NestJS 12 + TypeScript
