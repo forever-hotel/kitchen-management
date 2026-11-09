@@ -1,4 +1,4 @@
-/* DDP-274: Shared KMS footer; only existing Forever Hotel theme colors. */
+/* DDP-274: Shared KMS footer; preserve existing Forever Hotel theme colors. */
 .footer {
   display: flex;
   align-items: center;
@@ -37,37 +37,6 @@
   font-size: 11px;
 }
 
-.shortcuts {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 10px;
-}
-
-.shortcut {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 6px 8px;
-  border-radius: 6px;
-  color: #1a3c5e;
-  font-size: 12px;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.shortcut:hover {
-  background: #ddd8cf;
-  color: #12263a;
-}
-
-.shortcut[aria-current='page'] {
-  color: #12263a;
-  text-decoration: underline;
-  text-decoration-color: #c9920d;
-  text-underline-offset: 5px;
-}
-
 .backToTop {
   display: inline-flex;
   align-items: center;
@@ -92,7 +61,6 @@
   background: #f5f3ef;
 }
 
-.shortcut:focus-visible,
 .backToTop:focus-visible {
   outline: 2px solid #c9920d;
   outline-offset: 2px;
@@ -102,13 +70,5 @@
   .footer {
     gap: 8px 16px;
     padding: 14px 16px;
-  }
-
-  .branding {
-    flex: 1 1 100%;
-  }
-
-  .shortcuts {
-    flex: 1 1 230px;
   }
 }

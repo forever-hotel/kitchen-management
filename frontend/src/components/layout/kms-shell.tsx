@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { PropsWithChildren } from 'react';
 
-import { KmsFooter, KmsFooterRoleProvider } from './kms-footer';
+import { KmsFooter } from './kms-footer';
 import { KmsLogoutButton } from './kms-logout-button';
 import { KmsCurrentTime } from './kms-current-time';
 import styles from './kms-header.module.css';
@@ -28,57 +28,55 @@ export function KmsShell({ children, role = null }: KmsShellProps) {
   const hasInnerFooter = pathname === '/menu-management';
 
   return (
-    <KmsFooterRoleProvider role={role}>
-      <Layout className={`kms-shell${hasInnerFooter ? ' kms-shell--menu-management' : ''}`}>
-        <a className="skip-link" href="#main-content">
-          Skip to main content
-        </a>
+    <Layout className={`kms-shell${hasInnerFooter ? ' kms-shell--menu-management' : ''}`}>
+      <a className="skip-link" href="#main-content">
+        Skip to main content
+      </a>
 
-        <header className={styles.header}>
-          <div className={styles.brand}>
-            <span className={styles.brandDot} aria-hidden="true" />
-            <span className={styles.brandName}>FOREVER · KMS</span>
-            <h1 className={styles.visuallyHidden}>Kitchen Management System</h1>
-          </div>
+      <header className={styles.header}>
+        <div className={styles.brand}>
+          <span className={styles.brandDot} aria-hidden="true" />
+          <span className={styles.brandName}>FOREVER · KMS</span>
+          <h1 className={styles.visuallyHidden}>Kitchen Management System</h1>
+        </div>
 
-          {navigationItems.length > 0 && (
-            <nav aria-label="Kitchen navigation" className={styles.navigation}>
-              {navigationItems.map((item) => {
-                const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-                return (
-                  <Link
-                    key={item.key}
-                    href={item.href}
-                    aria-current={active ? 'page' : undefined}
-                    className={`${styles.navLink}${active ? ` ${styles.navLinkActive}` : ''}`}
-                  >
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </nav>
-          )}
+        {navigationItems.length > 0 && (
+          <nav aria-label="Kitchen navigation" className={styles.navigation}>
+            {navigationItems.map((item) => {
+              const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+              return (
+                <Link
+                  key={item.key}
+                  href={item.href}
+                  aria-current={active ? 'page' : undefined}
+                  className={`${styles.navLink}${active ? ` ${styles.navLinkActive}` : ''}`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+        )}
 
-          <div
-            className={styles.headerUtilities}
-            role="group"
-            aria-label="Hotel time and account actions"
-          >
-            <KmsCurrentTime />
-            {navigationItems.length > 0 ? (
-              <div className={styles.logoutSlot}>
-                <KmsLogoutButton />
-              </div>
-            ) : null}
-          </div>
-        </header>
+        <div
+          className={styles.headerUtilities}
+          role="group"
+          aria-label="Hotel time and account actions"
+        >
+          <KmsCurrentTime />
+          {navigationItems.length > 0 ? (
+            <div className={styles.logoutSlot}>
+              <KmsLogoutButton />
+            </div>
+          ) : null}
+        </div>
+      </header>
 
-        <Content id="main-content" className="kms-shell__content" tabIndex={-1}>
-          <div className="kms-shell__main">{children}</div>
-        </Content>
+      <Content id="main-content" className="kms-shell__content" tabIndex={-1}>
+        <div className="kms-shell__main">{children}</div>
+      </Content>
 
-        {!hasInnerFooter && <KmsFooter className="kms-shell__footer" />}
-      </Layout>
-    </KmsFooterRoleProvider>
+      {!hasInnerFooter && <KmsFooter className="kms-shell__footer" />}
+    </Layout>
   );
 }
