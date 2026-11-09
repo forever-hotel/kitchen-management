@@ -299,3 +299,30 @@ textarea:focus-visible {
     font-size: 10px;
   }
 }
+
+/* DDP-274: shared viewport-height workspace. No theme colors changed. */
+.kms-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.kms-shell .kms-shell__content {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.kms-shell .kms-shell__main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* The Menu Management grid owns its sidebar and its right-panel footer. */
+.kms-shell--menu-management .kms-shell__main {
+  padding: 0;
+}

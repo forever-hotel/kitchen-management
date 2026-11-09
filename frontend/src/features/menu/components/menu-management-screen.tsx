@@ -29,6 +29,7 @@ import { AddCategoryModal } from './add-category-modal';
 import { AddMenuItemModal } from './add-menu-item-modal';
 import { MenuStockActions } from './menu-stock-actions';
 import styles from './menu-management-screen.module.css';
+import { KmsFooter } from '@/components/layout/kms-footer';
 
 const stockTabs: readonly { value: MenuStockFilter; label: string }[] = [
   { value: 'ALL', label: 'All' },
@@ -53,6 +54,19 @@ function MealCategoryIcon({ name }: { name: string }) {
     default:
       return <AppstoreOutlined />;
   }
+}
+
+/** Preserve the existing modal's error handling for serializable Server Action failures. */
+function requireMenuWriteSuccess(result: unknown): void {
+  if (!result || typeof result !== 'object' || !('ok' in result) || result.ok !== false) {
+    return; // Existing fixture callbacks return void; successful actions return { ok: true }.
+  }
+  const status = 'status' in result && typeof result.status === 'number' ? result.status : null;
+  const message =
+    'message' in result && typeof result.message === 'string'
+      ? result.message
+      : 'Menu item could not be saved.';
+  throw Object.assign(new Error(message), { status });
 }
 
 /** Manager menu listing only; editing, persistence and session wiring are separate issues. */
@@ -522,6 +536,7 @@ export function MenuManagementScreen({
             </>
           )}
         </div>
+        <KmsFooter className={styles.innerFooter} />
       </div>
       {menuModal && (
         <AddMenuItemModal
@@ -536,7 +551,7 @@ export function MenuManagementScreen({
           onSave={
             menuModal.mode === 'create' && canCreateMenu
               ? async (payload) => {
-                  await onCreateMenuItem?.(payload);
+                  requireMenuWriteSuccess(await onCreateMenuItem?.(payload));
                 }
               : undefined
           }
@@ -544,7 +559,9 @@ export function MenuManagementScreen({
             menuModal.mode === 'edit' && canUpdateMenu
               ? async (patch) => {
                   if (menuModal.mode !== 'edit') return;
-                  await onUpdateMenuItem?.(menuModal.item.menuItemId, patch);
+                  requireMenuWriteSuccess(
+                    await onUpdateMenuItem?.(menuModal.item.menuItemId, patch),
+                  );
                   if (patch.categoryId) setSelectedCategoryId(patch.categoryId);
                 }
               : undefined

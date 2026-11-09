@@ -1258,3 +1258,39 @@
     content: none;
   }
 }
+
+/* DDP-274: full-height Menu Management grid and right-panel footer. */
+.workspace {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0;
+  align-items: stretch;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.innerFooter {
+  width: 100%;
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
+@media (max-width: 720px) {
+  .workspace {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+  }
+
+  .sidebar {
+    flex: 0 0 auto;
+  }
+
+  .main {
+    flex: 1 1 auto;
+  }
+}

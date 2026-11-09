@@ -1,6 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
+import { ApiError } from '@/lib/api/api-error';
 
 import type { KmsMealCategoryData, KmsMenuStockStatus } from '@/types/kms-menu';
 import { isKmsMenuStockStatus } from '@/types/kms-menu';
@@ -39,12 +40,59 @@ export async function createMenuCategory(input: CreateCategoryInput): Promise<Km
   );
 }
 
-export async function createMenuItem(input: MenuItemWritePayload): Promise<void> {
-  await managerMenuRequest('/items', { method: 'POST', body: input });
+/** Expected menu-write failures cross the Server Action boundary as safe JSON. */
+type MenuItemWriteResult = { ok: true } | { ok: false; status: number | null; message: string };
+
+function expectedMenuWriteFailure(error: unknown): MenuItemWriteResult {
+  if (!(error instanceof ApiError)) throw error;
+
+  const status = error.status;
+  let message: string;
+  switch (status) {
+    case 400:
+      message = 'Menu details were rejected. Review the entered values.';
+      break;
+    case 401:
+      message = 'Your session expired. Sign in and try again.';
+      break;
+    case 403:
+      message = 'Only Kitchen Managers can save menu items.';
+      break;
+    case 404:
+      message = 'A category or tag no longer exists. Reload the options.';
+      break;
+    case 409:
+      message = 'An item with this name already exists in the selected category.';
+      break;
+    case 429:
+      message = 'Too many requests. Please try again shortly.';
+      break;
+    default:
+      message = 'The menu service could not save this item. Please try again.';
+  }
+  // Never forward arbitrary upstream error strings or stack traces to the browser.
+  return { ok: false, status, message };
 }
 
-export async function updateMenuItem(id: string, patch: MenuItemEditPayload): Promise<void> {
-  await managerMenuRequest(`/items/${validId(id)}`, { method: 'PATCH', body: patch });
+export async function createMenuItem(input: MenuItemWritePayload): Promise<MenuItemWriteResult> {
+  try {
+    await managerMenuRequest('/items', { method: 'POST', body: input });
+    return { ok: true };
+  } catch (error) {
+    return expectedMenuWriteFailure(error);
+  }
+}
+
+export async function updateMenuItem(
+  id: string,
+  patch: MenuItemEditPayload,
+): Promise<MenuItemWriteResult> {
+  try {
+    await managerMenuRequest(`/items/${validId(id)}`, { method: 'PATCH', body: patch });
+    return { ok: true };
+  } catch (error) {
+    return expectedMenuWriteFailure(error);
+  }
 }
 
 export async function updateMenuStock(
