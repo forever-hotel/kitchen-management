@@ -5,27 +5,30 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { PropsWithChildren } from 'react';
 
+import { KmsFooter } from './kms-footer';
 import { KmsLogoutButton } from './kms-logout-button';
 import { KmsCurrentTime } from './kms-current-time';
 import styles from './kms-header.module.css';
 import { getKmsNavigationItems, type KmsRole } from './kms-navigation';
 
-const { Content, Footer } = Layout;
+const { Content } = Layout;
 
 interface KmsShellProps extends PropsWithChildren {
   role?: KmsRole | null;
 }
 
 /**
- * Preserve role-validated kitchen navigation. Account actions are kept next to
- * the hotel clock so the navigation stays focused on workspace destinations.
+ * Preserve role-validated navigation and avoid duplicating the shared footer.
+ * Menu Management has its own two-column workspace, so its footer is rendered
+ * inside the right panel. Every other protected screen uses the shell footer.
  */
 export function KmsShell({ children, role = null }: KmsShellProps) {
   const pathname = usePathname();
   const navigationItems = getKmsNavigationItems(role);
+  const hasInnerFooter = pathname === '/menu-management';
 
   return (
-    <Layout className="kms-shell">
+    <Layout className={`kms-shell${hasInnerFooter ? ' kms-shell--menu-management' : ''}`}>
       <a className="skip-link" href="#main-content">
         Skip to main content
       </a>
@@ -73,7 +76,7 @@ export function KmsShell({ children, role = null }: KmsShellProps) {
         <div className="kms-shell__main">{children}</div>
       </Content>
 
-      <Footer className="kms-shell__footer">Forever Hotel Kitchen Operations</Footer>
+      {!hasInnerFooter && <KmsFooter className="kms-shell__footer" />}
     </Layout>
   );
 }

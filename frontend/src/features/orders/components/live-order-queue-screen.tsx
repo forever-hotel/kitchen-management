@@ -218,7 +218,9 @@ export function LiveOrderQueueScreen() {
   );
 
   useEffect(() => {
-    const changed = () => { void refreshQueue('poll'); };
+    const changed = () => {
+      void refreshQueue('poll');
+    };
     window.addEventListener('kms:refresh', changed);
     return () => window.removeEventListener('kms:refresh', changed);
   }, [refreshQueue]);

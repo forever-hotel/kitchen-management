@@ -11,5 +11,10 @@ export const dynamic = 'force-dynamic';
 export default async function WorkspaceLayout({ children }: PropsWithChildren) {
   const session = await requireKmsWorkspaceSession();
 
-  return <KmsShell role={session.role}><KmsRealtime />{children}</KmsShell>;
+  return (
+    <KmsShell role={session.role}>
+      <KmsRealtime />
+      {children}
+    </KmsShell>
+  );
 }
