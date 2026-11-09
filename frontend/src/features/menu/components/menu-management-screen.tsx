@@ -29,6 +29,7 @@ import { AddCategoryModal } from './add-category-modal';
 import { AddMenuItemModal } from './add-menu-item-modal';
 import { MenuStockActions } from './menu-stock-actions';
 import styles from './menu-management-screen.module.css';
+import { KmsFooter } from '@/components/layout/kms-footer';
 
 const stockTabs: readonly { value: MenuStockFilter; label: string }[] = [
   { value: 'ALL', label: 'All' },
@@ -522,6 +523,7 @@ export function MenuManagementScreen({
             </>
           )}
         </div>
+        <KmsFooter className={styles.innerFooter} />
       </div>
       {menuModal && (
         <AddMenuItemModal
