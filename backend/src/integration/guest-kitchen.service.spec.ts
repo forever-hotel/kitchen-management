@@ -63,7 +63,7 @@ describe('FOSS kitchen contract', () => {
         menu_item_id: 'item',
         name: 'Rice',
         price: 125050,
-        category: 'Lunch',
+        category: 'Demo Lunch',
         stock_status: 'AVAILABLE',
         order_start_time: '12:00:00',
         order_cutoff_time: '15:00:00',

@@ -1,3 +1,4 @@
+import { kmsRequestOrigin } from '@/lib/auth/kms-request-origin';
 import { ApiError } from '../../../../../lib/api/api-error';
 import {
   backendOrderRequest,
@@ -20,7 +21,8 @@ function isSameOrigin(request: Request): boolean {
   const origin = request.headers.get('origin');
   const fetchSite = request.headers.get('sec-fetch-site');
   return (
-    origin === new URL(request.url).origin &&
+    Boolean(origin) &&
+    origin === kmsRequestOrigin(request) &&
     (!fetchSite || fetchSite === 'same-origin' || fetchSite === 'none')
   );
 }

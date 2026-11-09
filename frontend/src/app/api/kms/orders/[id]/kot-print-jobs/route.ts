@@ -1,3 +1,4 @@
+import { kmsRequestOrigin } from '@/lib/auth/kms-request-origin';
 import { ApiError } from '../../../../../../lib/api/api-error';
 import {
   backendOrderRequest,
@@ -24,7 +25,8 @@ function verifyOrigin(request: Request): void {
   const origin = request.headers.get('origin');
   const site = request.headers.get('sec-fetch-site');
   if (
-    origin !== new URL(request.url).origin ||
+    !origin ||
+    origin !== kmsRequestOrigin(request) ||
     (site && site !== 'same-origin' && site !== 'none')
   ) {
     throw new ApiError('Forbidden request origin', 'forbidden', 403);

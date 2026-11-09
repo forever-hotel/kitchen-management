@@ -1,17 +1,15 @@
-import { render, screen } from '@testing-library/react';
+import { redirect } from 'next/navigation';
 
 import Home from './page';
 
-describe('Home', () => {
-  it('TC-KMS-FE-001: Given the KMS frontend loads, when the foundation page renders, then the foundation heading is visible', () => {
-    // Arrange / Act
-    render(<Home />);
+jest.mock('next/navigation', () => ({
+  redirect: jest.fn(),
+}));
 
-    // Assert
-    expect(
-      screen.getByRole('heading', {
-        name: 'KMS frontend foundation',
-      }),
-    ).toBeInTheDocument();
+describe('Home', () => {
+  it('redirects to the protected kitchen order queue', () => {
+    Home();
+
+    expect(redirect).toHaveBeenCalledWith('/order-queue');
   });
 });
