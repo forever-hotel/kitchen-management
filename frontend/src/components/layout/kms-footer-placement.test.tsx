@@ -31,7 +31,9 @@ describe('DDP-274 menu/sidebar/footer ownership', () => {
       'aria-labelledby',
       'menu-management-heading',
     );
-    expect(screen.getByRole('complementary', { name: 'Meal category sidebar' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('complementary', { name: 'Meal category sidebar' }),
+    ).toBeInTheDocument();
     expect(within(footer).queryByRole('link')).not.toBeInTheDocument();
     expect(within(footer).getByRole('button', { name: 'Back to top' })).toBeInTheDocument();
   });

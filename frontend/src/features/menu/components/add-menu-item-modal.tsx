@@ -68,7 +68,7 @@ function initialDraft(
   };
 }
 
-function saveErrorMessage(error: unknown): string {
+function saveErrorMessage(error: unknown, itemName: string): string {
   if (error && typeof error === 'object') {
     const typed = error as { status?: unknown };
     switch (typed.status) {
@@ -81,7 +81,7 @@ function saveErrorMessage(error: unknown): string {
       case 404:
         return 'A category or tag no longer exists. Reload the options.';
       case 409:
-        return 'An item with this name already exists in the selected category.';
+        return `An item named "${itemName.trim()}" already exists in the selected category. Use a different name or edit the existing item.`;
       default:
         break;
     }
@@ -161,7 +161,7 @@ export function AddMenuItemModal({
       }
       onSaved();
     } catch (cause) {
-      setErrorMessage(saveErrorMessage(cause));
+      setErrorMessage(saveErrorMessage(cause, draft.name));
     } finally {
       setSubmitting(false);
     }
