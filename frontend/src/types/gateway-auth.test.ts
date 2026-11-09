@@ -1,8 +1,9 @@
 import { isKmsRole, KMS_ROLES } from './gateway-auth';
 
 describe('KMS Gateway authentication contracts', () => {
-  it('accepts the two authorized KMS roles', () => {
-    expect(KMS_ROLES).toEqual(['KITCHEN_MANAGER', 'KITCHEN_STAFF']);
+  it('accepts ROOT and the two authorized KMS roles', () => {
+    expect(KMS_ROLES).toEqual(['ROOT', 'KITCHEN_MANAGER', 'KITCHEN_STAFF']);
+    expect(isKmsRole('ROOT')).toBe(true);
 
     expect(isKmsRole('KITCHEN_MANAGER')).toBe(true);
     expect(isKmsRole('KITCHEN_STAFF')).toBe(true);

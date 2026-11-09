@@ -9,6 +9,7 @@ import { HealthModule } from './health/health.module.js';
 import { MenuCategoriesModule } from './modules/menu-categories/menu-categories.module.js';
 import { MenuModule } from './modules/menu/menu.module.js';
 import { OrdersModule } from './modules/orders/orders.module.js';
+import { KitchenIntegrationModule } from './integration/kitchen-integration.module.js';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { OrdersModule } from './modules/orders/orders.module.js';
     MenuCategoriesModule,
     MenuModule,
     OrdersModule,
+    KitchenIntegrationModule,
     HealthModule,
   ],
   controllers: [AppController],

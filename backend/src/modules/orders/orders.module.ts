@@ -61,6 +61,7 @@ import { KotPrintRepository } from './repositories/kot-print.repository.js';
     KmsKitchenReadGuard,
   ],
   exports: [
+    OrdersCreateService,
     FoodOrderRepository,
     KotPrintRepository,
     FoodOrderItemRepository,

@@ -70,6 +70,7 @@ export function isCategoryOrderingOpen(
   category: MealCategory,
   now: Date,
 ): boolean {
+  if (category.orderingEnabled === false) return false;
   const start = toTime(category.orderStartTime);
   const cutoff = toTime(category.orderCutoffTime);
   if (start === null || cutoff === null || cutoff <= start) return false;

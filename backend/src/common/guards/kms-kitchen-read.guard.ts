@@ -95,7 +95,7 @@ export class KmsKitchenReadGuard implements CanActivate {
       );
     }
     if (
-      !['KITCHEN_MANAGER', 'KITCHEN_STAFF'].includes(payload.role) ||
+      !['ROOT', 'KITCHEN_MANAGER', 'KITCHEN_STAFF'].includes(payload.role) ||
       payload.passwordChangeRequired
     ) {
       throw new ForbiddenException('Kitchen workspace access is required');

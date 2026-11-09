@@ -53,6 +53,7 @@ describe('DDP-261 transactional order status transitions', () => {
     expect(safetyCheck).toHaveBeenCalledWith(manager, order);
     expect(save).toHaveBeenCalledTimes(1);
     expect(order?.status).toBe(FoodOrderStatus.IN_PREPARATION);
+    expect(order?.preparationStartedAt).toBeInstanceOf(Date);
   });
 
   it('blocks unacknowledged orders and rolls back without writing', async () => {
@@ -71,6 +72,7 @@ describe('DDP-261 transactional order status transitions', () => {
     const response = await service.markReady(orderId);
     expect(response.status).toBe(FoodOrderStatus.READY);
     expect(response.changed).toBe(true);
+    expect(order?.readyAt).toBeInstanceOf(Date);
     expect(safetyCheck).not.toHaveBeenCalled();
     expect(save).toHaveBeenCalledTimes(1);
   });

@@ -2,6 +2,7 @@ import type { PropsWithChildren } from 'react';
 
 import { KmsShell } from '../../components/layout/kms-shell';
 import { requireKmsWorkspaceSession } from '../../lib/auth/kms-workspace-access';
+import { KmsRealtime } from '../../components/kms-realtime';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -10,5 +11,5 @@ export const dynamic = 'force-dynamic';
 export default async function WorkspaceLayout({ children }: PropsWithChildren) {
   const session = await requireKmsWorkspaceSession();
 
-  return <KmsShell role={session.role}>{children}</KmsShell>;
+  return <KmsShell role={session.role}><KmsRealtime />{children}</KmsShell>;
 }

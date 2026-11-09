@@ -49,7 +49,7 @@ export class OrdersCreateService {
 
         // Bookings remain owned by Front Desk; verify read-only stay context.
         const bookings = (await manager.query(
-          'SELECT room_number, status FROM bookings WHERE booking_id = $1',
+          'SELECT room_number, status FROM bookings WHERE booking_id = $1 FOR SHARE',
           [payload.bookingId],
         )) as BookingContext[];
         if (

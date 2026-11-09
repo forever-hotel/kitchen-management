@@ -217,6 +217,12 @@ export function LiveOrderQueueScreen() {
     [requestApi],
   );
 
+  useEffect(() => {
+    const changed = () => { void refreshQueue('poll'); };
+    window.addEventListener('kms:refresh', changed);
+    return () => window.removeEventListener('kms:refresh', changed);
+  }, [refreshQueue]);
+
   // Five-second notice timeout is unchanged from the completed DDP-262 branch.
   useEffect(() => {
     if (!notice) return;

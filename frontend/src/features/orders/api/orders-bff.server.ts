@@ -40,7 +40,7 @@ export async function backendOrderRequest(
   if (!stored) throw new ApiError('Please sign in again', 'unauthenticated', 401);
   const session = await validateKmsGatewaySession(stored.accessToken);
   if (
-    !['KITCHEN_MANAGER', 'KITCHEN_STAFF'].includes(session.role) ||
+    !['ROOT', 'KITCHEN_MANAGER', 'KITCHEN_STAFF'].includes(session.role) ||
     session.passwordChangeRequired
   ) {
     throw new ApiError('Kitchen access is required', 'forbidden', 403);

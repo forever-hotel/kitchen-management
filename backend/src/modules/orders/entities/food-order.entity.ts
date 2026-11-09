@@ -89,6 +89,16 @@ export class FoodOrder {
   })
   estimatedDeliveryTime!: Date | null;
 
+  @Column({
+    name: 'preparation_started_at',
+    type: 'timestamptz',
+    nullable: true,
+  })
+  preparationStartedAt!: Date | null;
+
+  @Column({ name: 'ready_at', type: 'timestamptz', nullable: true })
+  readyAt!: Date | null;
+
   @CreateDateColumn({
     name: 'created_at',
     type: 'timestamptz',
