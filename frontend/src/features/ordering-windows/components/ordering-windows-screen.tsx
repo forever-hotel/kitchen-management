@@ -224,7 +224,7 @@ function WindowCard({
             disabled={saving || reloadPending}
           />
         </div>
-        <div className={styles.field}>
+        {/* <div className={styles.field}>
           <label htmlFor={`${cardId}-last-order`}>Last order (soft)</label>
           <input
             id={`${cardId}-last-order`}
@@ -232,7 +232,7 @@ function WindowCard({
             type="time"
             disabled
           />
-        </div>
+        </div> */}
       </div>
       <div className={styles.toggleRow}>
         <Switch
