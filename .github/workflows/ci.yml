@@ -42,10 +42,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
       - name: Set up Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: '24.21.0'
           cache: npm
@@ -85,10 +85,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
       - name: Set up Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: '24.21.0'
           cache: npm
@@ -114,3 +114,115 @@ jobs:
 
       - name: Build frontend
         run: npm run build
+
+  containers:
+    name: Production container verification
+    needs: [backend, frontend]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Build production images
+        run: |
+          docker build --tag kms-backend:ci backend
+          docker build --tag kms-frontend:ci frontend
+      - name: Verify non-root runtime and Node.js
+        run: |
+          set -euo pipefail
+          for image in kms-backend:ci kms-frontend:ci; do
+            test "$(docker image inspect --format '{{.Config.User}}' "$image")" = node
+            docker run --rm --entrypoint node "$image" --version
+          done
+      - name: Verify frontend HTTP response
+        run: |
+          set -euo pipefail
+          docker run -d --name kms-frontend-smoke -p 127.0.0.1:3105:3005 kms-frontend:ci
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:3105/ --output /dev/null; then exit 0; fi
+            sleep 2
+          done
+          docker logs kms-frontend-smoke
+          exit 1
+      - name: Remove smoke container
+        if: always()
+        run: docker rm -f kms-frontend-smoke 2>/dev/null || true
+
+  publish-images:
+    name: Publish reviewed immutable images
+    needs: [backend, frontend, containers]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: read
+      pull-requests: read
+      packages: write
+    concurrency:
+      group: image-publication-${{ github.repository }}-develop
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Require peer approval on the release PR final code
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const prs = await github.paginate(github.rest.repos.listPullRequestsAssociatedWithCommit, { owner, repo, commit_sha: context.sha });
+            for (const pr of prs.filter(p => p.merged_at && p.base.ref === 'develop' && p.merge_commit_sha === context.sha)) {
+              const reviews = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: pr.number });
+              const latest = new Map();
+              for (const review of reviews) {
+                if (review.user && ['APPROVED', 'CHANGES_REQUESTED', 'DISMISSED'].includes(review.state)) latest.set(review.user.login, review);
+              }
+              const decisions = [...latest.values()];
+              if (decisions.some(r => r.state === 'APPROVED' && r.commit_id === pr.head.sha && r.user.login !== pr.user.login) &&
+                  !decisions.some(r => r.state === 'CHANGES_REQUESTED')) return;
+            }
+            throw new Error('Publication requires a reviewed PR merge into develop with approval on the final code.');
+      - name: Prepare temporary registry authentication and builder
+        env:
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          export DOCKER_CONFIG="$RUNNER_TEMP/publication-auth"
+          install -d -m 700 "$DOCKER_CONFIG"
+          echo "DOCKER_CONFIG=$DOCKER_CONFIG" >> "$GITHUB_ENV"
+          printf '%s' "$REGISTRY_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          docker buildx create --name service-release --driver docker-container --use
+          docker buildx inspect --bootstrap
+      - name: Build and publish images tagged by source commit
+        run: |
+          set -euo pipefail
+          repository="${GITHUB_REPOSITORY,,}"
+          for component in backend frontend; do
+            image="ghcr.io/$repository/$component"
+            docker buildx build --platform linux/amd64 --push \
+              --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
+              --label "org.opencontainers.image.revision=$GITHUB_SHA" \
+              --tag "$image:$GITHUB_SHA" \
+              --metadata-file "$RUNNER_TEMP/$component-image.json" \
+              "$component"
+            digest=$(jq -er '."containerimage.digest"' "$RUNNER_TEMP/$component-image.json")
+            [[ "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]
+            printf '%s=%s@%s\n' "$component" "$image" "$digest" >> "$RUNNER_TEMP/images.txt"
+          done
+          jq -n --arg commit "$GITHUB_SHA" \
+            --arg frontend "$(sed -n 's/^frontend=//p' "$RUNNER_TEMP/images.txt")" \
+            --arg backend "$(sed -n 's/^backend=//p' "$RUNNER_TEMP/images.txt")" \
+            '{commit:$commit,frontend:$frontend,backend:$backend}' > release-images.json
+          printf '### Published release images\n```json\n' >> "$GITHUB_STEP_SUMMARY"
+          cat release-images.json >> "$GITHUB_STEP_SUMMARY"
+          printf '\n```\n' >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: release-images
+          path: release-images.json
+          if-no-files-found: error
+      - name: Remove temporary registry login
+        if: always()
+        run: |
+          if test -n "${DOCKER_CONFIG:-}"; then docker logout ghcr.io || true; fi
