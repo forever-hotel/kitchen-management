@@ -99,7 +99,7 @@ jobs:
 
       - name: Install frontend dependencies
         run: npm ci
-      
+
       - name: Audit frontend dependencies
         run: npm run security:audit
 
@@ -222,7 +222,41 @@ jobs:
           name: release-images
           path: release-images.json
           if-no-files-found: error
+          overwrite: true
       - name: Remove temporary registry login
         if: always()
         run: |
           if test -n "${DOCKER_CONFIG:-}"; then docker logout ghcr.io || true; fi
+
+  deploy-staging:
+    name: Deploy kitchen-management to staging
+    needs: publish-images
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop' && vars.SERVICE_STAGING_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: staging
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+    concurrency:
+      group: kms-staging-release
+      cancel-in-progress: false
+    steps:
+      - name: Deploy this run's reviewed immutable images
+        uses: forever-hotel/infra/.github/actions/deploy-service@e1f320d8c3b7622339291f70c1acd3b7458df439
+        with:
+          service: kms
+          artifact: release-images
+          host: ${{ vars.STAGING_HOST }}
+          user: ${{ vars.STAGING_USER }}
+          ssh-key: ${{ secrets.STAGING_SSH_KEY }}
+          known-hosts: ${{ secrets.STAGING_KNOWN_HOSTS }}
+      - name: Retain service deployment receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kms-staging-receipt
+          path: ${{ runner.temp }}/service-release/receipt.json
+          if-no-files-found: warn
+          overwrite: true
