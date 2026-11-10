@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 
 import { ConflictException } from '@nestjs/common';
+import { categoryMealPeriod } from '../../integration/meal-period.js';
 
 import type { MealCategory } from '../menu-categories/entities/meal-category.entity.js';
 import type { MenuItem } from '../menu/entities/menu-item.entity.js';
@@ -94,9 +95,6 @@ export function matchesMealPeriod(
   menuItem: MenuItem,
   mealPeriod: string,
 ): boolean {
-  const label = menuItem.category?.name
-    .toUpperCase()
-    .trim()
-    .replace(/[\s-]+/g, '_');
+  const label = categoryMealPeriod(menuItem.category?.name);
   return label === mealPeriod;
 }

@@ -9,6 +9,7 @@ import { DataSource } from 'typeorm';
 import { FoodOrder } from '../modules/orders/entities/food-order.entity.js';
 import { FoodOrderStatus } from '../modules/orders/enums/food-order-status.enum.js';
 import { OrdersCreateService } from '../modules/orders/orders-create.service.js';
+import { categoryMealPeriod } from './meal-period.js';
 
 interface MenuRow {
   menu_item_id: string;
@@ -55,12 +56,9 @@ export class GuestKitchenService {
         description: row.description,
         price: row.price / 100,
         category: row.category,
-        mealPeriods: [
-          row.category
-            .trim()
-            .toUpperCase()
-            .replace(/[\s-]+/g, '_'),
-        ],
+        mealPeriods: [categoryMealPeriod(row.category)].filter(
+          (period): period is string => period !== null,
+        ),
         available: row.stock_status === 'AVAILABLE',
         estimatedPrepMinutes: row.preparation_time,
         portionLimit: row.portion_limit,

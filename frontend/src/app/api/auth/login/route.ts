@@ -1,3 +1,4 @@
+import { kmsRequestOrigin } from '@/lib/auth/kms-request-origin';
 import { ApiError } from '../../../../lib/api/api-error';
 import { loginKmsStaff } from '../../../../lib/auth/kms-gateway-auth';
 import { setKmsSessionCookie } from '../../../../lib/auth/kms-session-store';
@@ -22,7 +23,7 @@ function isSameOriginRequest(request: Request): boolean {
   const origin = request.headers.get('origin');
   const fetchSite = request.headers.get('sec-fetch-site');
 
-  if (!origin || origin !== new URL(request.url).origin) {
+  if (!origin || origin !== kmsRequestOrigin(request)) {
     return false;
   }
 

@@ -1,3 +1,4 @@
+import { kmsRequestOrigin } from '@/lib/auth/kms-request-origin';
 import { getKmsSessionToken } from '@/lib/auth/kms-session-store';
 import { validateKmsGatewaySession } from '@/lib/auth/kms-gateway-auth';
 
@@ -6,8 +7,8 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request): Promise<Response> {
   const headers = { 'Cache-Control': 'private, no-store' };
-  const origin = process.env.APP_ORIGIN || new URL(request.url).origin;
-  if (request.headers.get('origin') !== origin)
+  const origin = kmsRequestOrigin(request);
+  if (!origin || request.headers.get('origin') !== origin)
     return Response.json({ error: 'Forbidden' }, { status: 403, headers });
   try {
     const stored = await getKmsSessionToken();

@@ -189,3 +189,22 @@ describe('KMS secure login API route', () => {
     expect(JSON.stringify(body)).not.toContain('Encryption configuration missing');
   });
 });
+
+it('accepts the configured public origin behind Docker and rejects other origins', async () => {
+  const original = process.env.APP_ORIGIN;
+  process.env.APP_ORIGIN = 'http://localhost:3005';
+  try {
+    const makeRequest = (origin: string) =>
+      new Request('http://0.0.0.0:3005/api/auth/login', {
+        method: 'POST',
+        headers: { origin, 'content-type': 'application/json', 'sec-fetch-site': 'same-origin' },
+        body: JSON.stringify({ username: 'chef.manager', password: 'test-password' }),
+      });
+    mockedLogin.mockResolvedValue({ accessToken: 'secret-gateway-token', session: validSession });
+    expect((await POST(makeRequest('http://localhost:3005'))).status).toBe(200);
+    expect((await POST(makeRequest('https://attacker.example'))).status).toBe(403);
+  } finally {
+    if (original === undefined) delete process.env.APP_ORIGIN;
+    else process.env.APP_ORIGIN = original;
+  }
+});
