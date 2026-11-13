@@ -148,10 +148,8 @@ GET http://localhost:3001/health/live
 
 ## Additional documentation
 
-See the framework-specific READMEs for more details:
-
-- [backend/README.md](backend/README.md)
-- [frontend/README.md](frontend/README.md)
+See the [deployment checklist](DEPLOYMENT-CHECKLIST.md) and
+[API contract review](contracts/kms-api-contract-review.md) for service-specific guidance.
 
 ### Development database persistence
 
