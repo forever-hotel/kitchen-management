@@ -22,7 +22,7 @@
 .brandName {
   color: #12263a;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.055em;
 }
 
@@ -51,7 +51,7 @@
   color: #12263a;
   font: inherit;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
 }

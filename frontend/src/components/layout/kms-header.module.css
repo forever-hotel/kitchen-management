@@ -13,7 +13,7 @@
   background: #12263a;
   color: #ffffff;
   border-bottom: 2px solid #c39532;
-  box-shadow: 0 2px 7px rgb(18 38 58 / 9%);
+  box-shadow: none;
 }
 .brand {
   display: flex;
@@ -32,7 +32,7 @@
 .brandName {
   color: #fff;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.095em;
 }
 .navigation {
@@ -71,7 +71,7 @@
   color: #edc571;
   background: rgb(195 149 50 / 14%);
   border-color: rgb(195 149 50 / 45%);
-  font-weight: 700;
+  font-weight: 600;
 }
 .navLink:focus-visible {
   outline: 2px solid #ffffff;
@@ -105,7 +105,7 @@
 .logoutButton {
   color: #ffaaa8 !important;
   font-size: 12px !important;
-  font-weight: 750 !important;
+  font-weight: 600 !important;
   min-height: 44px;
   padding: 0 6px !important;
 }

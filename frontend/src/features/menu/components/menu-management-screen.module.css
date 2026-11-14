@@ -23,7 +23,7 @@
 .eyebrow {
   color: #b6c6d4;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.11em;
   text-transform: uppercase;
 }
@@ -107,12 +107,12 @@
 
 .categoryCount {
   min-width: 30px;
-  border-radius: 14px;
+  border-radius: var(--ui-radius-panel);
   padding: 4px 6px;
   background: #304960;
   color: #fff;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   text-align: center;
 }
 
@@ -272,7 +272,7 @@
   background: #f5f3ef;
   color: #5a5650;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -331,7 +331,7 @@
   background: #e8eef4;
   color: #1a3c5e;
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .tagGroup {
@@ -352,7 +352,7 @@
 
 .price {
   color: #1a3c5e;
-  font-weight: 700;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
@@ -474,7 +474,7 @@
     content: attr(data-label);
     color: #5a5650;
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 600;
   }
 
   .table td:last-child {
@@ -504,7 +504,7 @@
   min-height: 44px;
   border: 1px solid #c9920d;
   color: #f4c752;
-  font-weight: 700;
+  font-weight: 600;
   background: transparent;
 }
 .sidebarHeader :global(.ant-btn:hover) {
@@ -559,18 +559,18 @@
 }
 .titleRow .title {
   font-size: 23px !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
   line-height: 1.28;
   color: #1a1a18 !important;
 }
 .configuredTag {
   padding: 2px 10px;
-  border-radius: 20px;
+  border-radius: var(--ui-radius-panel);
   border: 1px solid #91bfa0;
   background: #ebf5ee;
   color: #1a6b3c;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .subtitle {
   margin-top: 4px;
@@ -725,7 +725,7 @@
 .price {
   color: #1a3c5e;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
   white-space: nowrap;
 }
 .table td:last-child :global(.ant-btn) {
@@ -831,7 +831,7 @@
   border-radius: 6px;
   background: transparent;
   color: #f4c752;
-  font-weight: 700;
+  font-weight: 600;
 }
 .sidebarHeader :global(.ant-btn:hover) {
   border-color: #e6b23d !important;
@@ -895,7 +895,7 @@
   margin: 0 !important;
   color: #1a1a18 !important;
   font-size: 23px !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
 }
 .configuredTag {
   margin: 0;
@@ -905,7 +905,7 @@
   background: #e8f5ee;
   color: #1a6b3c;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .subtitle {
   margin-top: 5px;
@@ -924,7 +924,7 @@
 .headerActions :global(.ant-btn) {
   min-height: 41px;
   border-radius: 6px;
-  font-weight: 650;
+  font-weight: 600;
 }
 .headerActions :global(.ant-btn-primary) {
   border-color: #1a3c5e;
@@ -1007,7 +1007,7 @@
   background: #f5f3ef;
   color: #5a5650;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.04em;
 }
 .table th:first-child {
@@ -1046,7 +1046,7 @@
 }
 .itemCell strong {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.35;
 }
 .itemCell small {
@@ -1087,7 +1087,7 @@
 .price {
   color: #1a3c5e;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
   white-space: nowrap;
 }
 .table td:nth-child(6) > :global(.ant-tag) {

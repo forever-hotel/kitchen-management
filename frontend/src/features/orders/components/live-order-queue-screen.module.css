@@ -9,14 +9,14 @@
 .liveBadge {
   color: #1a6b3c;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
 }
 /* Signal that the previous snapshot is being kept after a failed refresh. */
 .delayedBadge {
   color: #925a05;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
 }
 .refreshButton {
@@ -25,7 +25,7 @@
   padding-left: 12px !important;
   color: #1a3c5e !important;
   font-size: 12px !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
   height: 32px;
 }
 .refreshButton:hover:not(:disabled) {
@@ -43,7 +43,7 @@
   background: #fcf8eb;
   color: #7a4f00;
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .alert {
   margin-bottom: 14px;
@@ -90,7 +90,7 @@
 }
 .modalTitle strong {
   font-size: 16px;
-  font-weight: 750;
+  font-weight: 600;
   color: #fff;
 }
 .modalTitle p {
@@ -111,7 +111,7 @@
   margin: 0 0 8px;
   color: #625e58;
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.07em;
 }
 .modalBody p {
@@ -131,7 +131,7 @@
   color: #5c5a56;
 }
 .modalMeta strong {
-  font-weight: 750;
+  font-weight: 600;
   color: #242b2a;
 }
 .modalItemSection {
@@ -165,7 +165,7 @@
   border-radius: 3px;
   background: #e8eef4;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   color: #1a3c5e;
   white-space: nowrap;
 }
@@ -264,7 +264,7 @@
 .modalConfirmButton:not(:disabled) {
   background: #1a6b3c;
   border-color: #1a6b3c;
-  font-weight: 700;
+  font-weight: 600;
 }
 .modalConfirmButton:not(:disabled):hover {
   background: #155a33 !important;

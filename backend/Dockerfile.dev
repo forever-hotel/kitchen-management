@@ -1,10 +1,12 @@
+# syntax=docker/dockerfile:1
 FROM node:24.21.0-alpine
 
 WORKDIR /app
 
 COPY package.json package-lock.json ./
 
-RUN npm ci
+RUN --mount=type=cache,id=kms-backend-npm,target=/root/.npm,sharing=locked \
+    npm ci --prefer-offline
 
 COPY . .
 

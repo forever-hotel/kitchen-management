@@ -16,9 +16,9 @@
   width: min(100%, 416px);
   padding: 28px;
   border: 1px solid var(--kms-border);
-  border-radius: 18px;
+  border-radius: var(--ui-radius-panel);
   background: #fff;
-  box-shadow: 0 12px 36px rgb(18 38 58 / 8%);
+  box-shadow: none;
 }
 
 .brand {
@@ -37,11 +37,11 @@
   place-items: center;
   width: 42px;
   height: 42px;
-  border-radius: 11px;
+  border-radius: var(--ui-radius-panel);
   background: var(--kms-header);
   color: var(--kms-header-foreground);
   font-size: 15px;
-  font-weight: 750;
+  font-weight: 600;
   letter-spacing: -0.8px;
 }
 
@@ -53,18 +53,19 @@
 .brandName,
 .brandCaption {
   margin: 0;
+  font-size: 12px;
 }
 
 .brandName {
   color: var(--foreground);
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
 }
 
 .brandCaption {
   color: #5a5650;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -75,8 +76,8 @@
   border-radius: 999px;
   background: var(--background);
   color: #5a5650;
-  font-size: 9px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 600;
   letter-spacing: 0.04em;
   line-height: 1.1;
   white-space: nowrap;
@@ -90,7 +91,7 @@
   margin: 0 0 6px;
   color: var(--foreground);
   font-size: clamp(20px, 3vw, 23px);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.025em;
   line-height: 1.26;
 }
@@ -148,7 +149,7 @@
   min-height: 44px;
   border-radius: 9px;
   font-size: 14px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .helpText {
@@ -175,7 +176,7 @@
 
   .card {
     padding: 21px 19px;
-    border-radius: 15px;
+    border-radius: var(--ui-radius-panel);
   }
 
   .brand {

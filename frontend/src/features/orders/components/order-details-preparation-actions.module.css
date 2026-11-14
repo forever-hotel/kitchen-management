@@ -12,7 +12,7 @@
 .actions :global(.ant-btn-primary) {
   background: #1a3c5e;
   border-color: #1a3c5e;
-  font-weight: 700;
+  font-weight: 600;
   min-height: 40px;
 }
 .actions :global(.ant-btn-primary:hover:not(:disabled)) {

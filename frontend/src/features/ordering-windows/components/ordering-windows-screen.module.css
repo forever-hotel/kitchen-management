@@ -21,7 +21,7 @@
   background: #e8eef4;
   color: #1a3c5e;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .breadcrumb a {
   color: #5a5650;
@@ -62,7 +62,7 @@
   margin: 0 !important;
   color: #1a3c5e !important;
   font-size: 22px !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
 }
 .heading .description {
   margin: 4px 0 0 !important;
@@ -90,7 +90,7 @@
   background: #e8eef4;
   color: #1a3c5e;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .headerControls :global(.ant-btn) {
   height: 34px;
@@ -111,7 +111,7 @@
 .workspace .leftColumn > :global(.ant-alert) :global(.ant-alert-title) {
   color: #1a3c5e;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .workspace .leftColumn > :global(.ant-alert) :global(.ant-alert-description) {
   font-size: 11px;
@@ -131,7 +131,7 @@
   min-width: 0;
   padding: 18px 20px 20px;
   border: 1px solid #d0d8cf;
-  border-radius: 12px;
+  border-radius: var(--ui-radius-panel);
   background: #fff;
 }
 .activeCard {
@@ -181,7 +181,7 @@
   margin: 0;
   color: #1a3c5e;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.25;
 }
 .mealTitle p {
@@ -202,7 +202,7 @@
   background: #f5f3ef;
   color: #5a5650;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .statusDot {
   width: 7px;
@@ -247,7 +247,7 @@
 .field label {
   color: #5a5650;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -281,7 +281,7 @@
   margin-top: 14px;
   color: #1a1a18;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .toggle:global(.ant-switch-checked) {
   background: #1a3c5e;
@@ -366,14 +366,14 @@
 .sidePanel {
   padding: 16px;
   border: 1px solid #d0d8cf;
-  border-radius: 12px;
+  border-radius: var(--ui-radius-panel);
   background: #fff;
 }
 .sidePanel h3 {
   margin: 0 0 10px;
   color: #1a1a18;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .sidePanel p {
   margin: 0 0 10px;
@@ -438,7 +438,7 @@
   background: #1a3c5e;
   color: #fff;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 16px;
 }
 .timelineBar::before {
